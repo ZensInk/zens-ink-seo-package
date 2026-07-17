@@ -1,2 +1,2 @@
 """zens.ink — Free SEO keyword research toolkit."""
-__version__ = "0.3.0"
+__version__ = "0.4.0"

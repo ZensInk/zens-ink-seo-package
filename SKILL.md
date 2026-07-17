@@ -8,7 +8,7 @@ description: >-
   pages, missing canonicals/H1/meta), and real ranking data (Google Search Console).
   Pure Python stdlib — no pip install required beyond this package. Optional API keys
   unlock volume data but all core tools work without any keys.
-version: "1.0.0"
+version: "1.1.0"
 authors:
   - name: Jask
     url: https://zens.ink
@@ -162,7 +162,7 @@ Google Search Console: run `zens-ink setup_gsc` and follow the OAuth flow.
 
 ## Going Further
 
-**ZensInk Pro** adds automated workflow engines: Winability Score (personalized KD), Content Radar (weekly editorial calendar), Competitor Radar (pricing/features/Reddit sentiment), GEO Visibility (AI search mentions), and full 10-step automated audit with HTML report.
+**ZensInk Pro** adds automated workflow engines: Winability Score (personalized KD), Content Radar (weekly editorial calendar), Competitor Radar (pricing/features/Reddit sentiment), GEO Visibility (does AI mention your brand?), GEO Score (will AI cite your page? 5-layer 16-dimension scoring with prioritized action plan), Search Intent classification, On-Page quality audit, and full 12-step automated audit with HTML report.
 
 Learn more: https://zens.ink
 

@@ -16,7 +16,7 @@ TOOLS = {
 
 
 def show_help():
-    print(f"\nzens.ink CLI v1.0.0 — Free SEO toolkit for indie builders\n")
+    print(f"\nzens.ink CLI v1.1.0 — Free SEO toolkit for indie builders\n")
     print("Usage: zens-ink <tool> [options]")
     print("   or: python3 -m zens_ink.<tool> [options]\n")
     print("Tools:")
