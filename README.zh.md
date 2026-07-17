@@ -20,18 +20,23 @@
 
 ---
 
-八个命令行工具，覆盖完整 SEO 流程 —— 从发现用户搜什么，到分析竞品，到审计自己的站点。不需要付费 API，不需要 Ahrefs，不需要订阅。只用免费数据源 + Python 标准库。
+十三个命令行工具，覆盖完整 SEO 流程 —— 从发现用户搜什么，到聚类分组、意图分类，到审计自己的站点。不需要付费 API，不需要 Ahrefs，不需要订阅。只用免费数据源 + Python 标准库。
 
 | 工具 | 功能 | 需要密钥 |
 |------|------|---------|
 | `keyword_research` | 通过 Google 自动补全发现长尾关键词 | 无 |
-| `keyword_volume` | 通过 Bing 站长 API 获取真实搜索量 | 免费 Bing key |
+| `keyword_cluster` | 将关键词按语义相似度聚类分组 | 无 |
 | `kd` | 基于 SERP 结构分析关键词难度 | 免费 Serper key |
+| `kgr_auto` | KGR 机会评分（竞争度 vs 搜索量） | 可选 Bing key |
+| `keyword_volume` | 通过 Bing 站长 API 获取真实搜索量 | 免费 Bing key |
 | `brave_volume` | 通过 Brave 搜索信号交叉验证搜索需求 | 免费 Brave key |
-| `search_performance` | 你在 Google 上的真实排名数据（GSC） | 免费 GSC OAuth |
+| `search_intent` | 搜索意图分类（信息/商业/交易/导航） | 无 |
+| `content_matrix` | 优先级内容机会矩阵 | 无 |
 | `competitor_gap` | 多竞品 sitemap 对比，找出内容缺口 | 无 |
 | `site_audit` | 技术 SEO 审计：断链、孤岛页面、缺失 canonical/meta/H1 | 无 |
+| `onpage_audit` | 页面质量评分（7 维度，每页 0-100 分） | 无 |
 | `setup_gsc` | Google Search Console OAuth 一次性配置 | — |
+| `search_performance` | 你在 Google 上的真实排名数据（GSC） | 免费 GSC OAuth |
 
 ## 为什么做这个
 

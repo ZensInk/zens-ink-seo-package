@@ -1,14 +1,16 @@
 ---
 name: zens-ink
 description: >-
-  Free SEO toolkit for indie builders. 8 zero-dependency Python tools covering
-  the full SEO workflow: keyword discovery (Google Autocomplete), keyword difficulty
-  (SERP structure analysis, no Ahrefs needed), search volume (Bing + Brave), competitor
-  content gap analysis (sitemap comparison), technical site audit (broken links, orphan
-  pages, missing canonicals/H1/meta), and real ranking data (Google Search Console).
-  Pure Python stdlib — no pip install required beyond this package. Optional API keys
-  unlock volume data but all core tools work without any keys.
-version: "1.1.0"
+  Free SEO toolkit for indie builders. 13 zero-dependency Python tools covering
+  the full SEO workflow: keyword discovery (Google Autocomplete), keyword clustering
+  (semantic grouping), keyword difficulty (SERP structure analysis, no Ahrefs needed),
+  KGR opportunity scoring, search volume (Bing + Brave), search intent classification,
+  content opportunity matrix, competitor content gap analysis (sitemap comparison),
+  technical site audit (broken links, orphan pages, missing canonicals/H1/meta),
+  on-page quality scoring (7 dimensions, 0-100 per page), and real ranking data
+  (Google Search Console). Pure Python stdlib — no pip install required beyond this
+  package. Optional API keys unlock volume data but all core tools work without any keys.
+version: "1.2.0"
 authors:
   - name: Jask
     url: https://zens.ink
@@ -27,14 +29,19 @@ triggers:
   - find long tail keywords
   - keyword difficulty check
   - can i rank for this keyword
+  - keyword clustering
+  - search intent analysis
+  - content opportunity matrix
   - competitor content gap
   - seo site audit
   - check broken links
   - find orphan pages
+  - on-page seo audit
   - google search console data
   - search ranking performance
   - website seo check
   - technical seo audit
+  - kgr keyword golden ratio
 ---
 
 # ZensInk — Free SEO Toolkit for Indie Builders
@@ -50,14 +57,16 @@ After install, `zens-ink` command is available globally. Verify:
 zens-ink --help
 ```
 
-All 8 tools can also be run as Python modules:
+All 13 tools can also be run as Python modules:
 ```bash
 python3 -m zens_ink.keyword_research "tarot meaning"
 ```
 
-## The 8 Tools
+## The 13 Tools
 
-### 1. keyword_research — Discover Keywords (FREE, no API key)
+### Keyword Discovery
+
+#### 1. keyword_research — Discover Keywords (FREE, no API key)
 
 Mines Google Autocomplete for long-tail keyword variations.
 
@@ -68,7 +77,19 @@ zens-ink keyword_research "塔罗牌" --lang zh            # Chinese keywords
 zens-ink keyword_research "tarot meaning" --json        # JSON output
 ```
 
-### 2. kd — Keyword Difficulty (needs SERPER_API_KEY, free 2500/mo)
+#### 2. keyword_cluster — Semantic Grouping (FREE, no API key)
+
+Groups raw keyword lists into topic clusters based on word overlap similarity.
+
+```bash
+echo "tarot reading\ntarot cards\nfree tarot" | zens-ink keyword_cluster --stdin
+zens-ink keyword_cluster -f keywords.txt --threshold 0.2
+zens-ink keyword_cluster -f keywords.txt --csv output.csv
+```
+
+### Difficulty & Opportunity
+
+#### 3. kd — Keyword Difficulty (needs SERPER_API_KEY, free 2500/mo)
 
 SERP structure analysis — no expensive Ahrefs DR data needed. Outputs GO / CAUTION / WAIT / AVOID.
 
@@ -77,7 +98,18 @@ zens-ink kd "tarot reading"
 zens-ink kd "bazi calculator" --lang zh
 ```
 
-### 3. keyword_volume — Search Volume (needs BING_API_KEY, free)
+#### 4. kgr_auto — KGR Opportunity Scoring (FREE scoring, optional Bing key for volume)
+
+Automated keyword opportunity scoring using the Keyword Golden Ratio methodology.
+
+```bash
+zens-ink kgr_auto "tarot" "tarot reading" "free tarot"
+zens-ink kgr_auto -f keywords.txt
+```
+
+### Search Volume
+
+#### 5. keyword_volume — Search Volume (needs BING_API_KEY, free)
 
 Real monthly search volume from Bing Webmaster API.
 
@@ -85,7 +117,7 @@ Real monthly search volume from Bing Webmaster API.
 zens-ink keyword_volume "tarot meaning" --lang en
 ```
 
-### 4. brave_volume — Alternative Volume (needs BRAVE_API_KEY, free 2000/mo)
+#### 6. brave_volume — Alternative Volume (needs BRAVE_API_KEY, free 2000/mo)
 
 Supplements Bing volume data. Especially useful when Bing returns 0 for Chinese keywords.
 
@@ -93,7 +125,29 @@ Supplements Bing volume data. Especially useful when Bing returns 0 for Chinese 
 zens-ink brave_volume "tarot reading" --count 5
 ```
 
-### 5. competitor_gap — Competitor Content Analysis (FREE, no API key)
+### Intent & Content Strategy
+
+#### 7. search_intent — Intent Classification (FREE, no API key)
+
+Classifies each keyword as informational / commercial / transactional / navigational, with question/buyer/problem flags.
+
+```bash
+zens-ink search_intent "buy tarot cards" "what is tarot" "best tarot deck"
+zens-ink search_intent -f keywords.txt --json
+```
+
+#### 8. content_matrix — Opportunity Matrix (FREE, no API key)
+
+Combines clustering + intent + KGR into a prioritized content matrix: what to write, in what order, and why.
+
+```bash
+zens-ink content_matrix -f keywords.txt
+zens-ink content_matrix -f keywords.txt --json
+```
+
+### Competitive Analysis
+
+#### 9. competitor_gap — Competitor Content Analysis (FREE, no API key)
 
 Compares sitemaps to find topics competitors cover that you don't.
 
@@ -103,7 +157,9 @@ zens-ink competitor_gap \
   --compare https://competitor1.com https://competitor2.com
 ```
 
-### 6. site_audit — Technical SEO Audit (FREE, no API key)
+### Technical SEO Audit
+
+#### 10. site_audit — Technical Site Audit (FREE, no API key)
 
 Scans built HTML for 7 common issues: orphan pages, missing trailing slashes, broken internal links, missing canonical tags, missing meta descriptions, missing H1 tags, multiple H1 tags.
 
@@ -112,9 +168,18 @@ zens-ink site_audit --dist dist --sitemap dist/sitemap.xml
 zens-ink site_audit --dist dist --sitemap dist/sitemap.xml --format json
 ```
 
-Works with any static build output: Astro, Next.js export, Hugo, Gatsby, etc.
+#### 11. onpage_audit — On-Page Quality Scoring (FREE, no API key)
 
-### 7. setup_gsc — Connect Google Search Console (FREE, one-time)
+7-dimension quality scoring per page: title, meta, headings, images, links, URL, content. 0-100 score with grade and fix suggestions.
+
+```bash
+zens-ink onpage_audit --dist dist --sitemap dist/sitemap.xml
+zens-ink onpage_audit --dist dist --keywords keywords.txt
+```
+
+### Google Search Console
+
+#### 12. setup_gsc — Connect Google Search Console (FREE, one-time)
 
 One-time OAuth setup for Google Search Console.
 
@@ -122,7 +187,7 @@ One-time OAuth setup for Google Search Console.
 zens-ink setup_gsc
 ```
 
-### 8. search_performance — Real Ranking Data (FREE, needs setup_gsc)
+#### 13. search_performance — Real Ranking Data (FREE, needs setup_gsc)
 
 Pulls actual Google Search Console data: impressions, clicks, CTR, average position.
 
@@ -136,15 +201,23 @@ zens-ink search_performance --query tarot
 
 ```
 keyword_research  →  what should I target?
-       ↓
-kd                →  can I win?
-       ↓
-keyword_volume    →  is it worth the effort?
-       ↓
+        ↓
+keyword_cluster   →  group into topics
+        ↓
+search_intent     →  why do people search this?
+        ↓
+kd / kgr_auto     →  can I win? Is it worth it?
+        ↓
+keyword_volume    →  how many people search?
+        ↓
+content_matrix    →  what to write first?
+        ↓
 competitor_gap    →  what am I missing?
-       ↓
+        ↓
 site_audit        →  is my site technically healthy?
-       ↓
+        ↓
+onpage_audit      →  is each page optimized?
+        ↓
 search_performance →  how am I doing?
 ```
 
@@ -162,7 +235,12 @@ Google Search Console: run `zens-ink setup_gsc` and follow the OAuth flow.
 
 ## Going Further
 
-**ZensInk Pro** adds automated workflow engines: Winability Score (personalized KD), Content Radar (weekly editorial calendar), Competitor Radar (pricing/features/Reddit sentiment), GEO Visibility (does AI mention your brand?), GEO Score (will AI cite your page? 5-layer 16-dimension scoring with prioritized action plan), Search Intent classification, On-Page quality audit, and full 12-step automated audit with HTML report.
+**ZensInk Pro** adds automated workflow engines that go beyond individual tools:
+Winability Score (personalized KD based on YOUR domain's GSC data), Content Radar
+(weekly editorial calendar with angle suggestions), Competitor Radar (pricing/features/
+Reddit sentiment), GEO Visibility (does AI mention your brand?), GEO Score (will AI cite
+your page? 5-layer 16-dimension scoring), and full 12-step automated audit with HTML
+report.
 
 Learn more: https://zens.ink
 

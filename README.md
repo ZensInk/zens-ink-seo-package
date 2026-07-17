@@ -20,18 +20,23 @@ CLI tools for keyword research, competitor analysis, and technical audits. Zero 
 
 ---
 
-Eight CLI tools that cover the full SEO workflow — from discovering what people search, to analyzing competitors, to auditing your own site. No paid APIs. No Ahrefs. No subscriptions. Just free data sources wired together with Python.
+Thirteen CLI tools that cover the full SEO workflow — from discovering what people search, to clustering keywords by topic, to classifying search intent, to auditing your own site. No paid APIs. No Ahrefs. No subscriptions. Just free data sources wired together with Python.
 
 | Tool | What it does | API needed |
 |------|-------------|-----------|
 | `keyword_research` | Discover long-tail keywords via Google Autocomplete | None |
-| `keyword_volume` | Real search volume via Bing Webmaster API | Free Bing key |
+| `keyword_cluster` | Group keywords into semantic topic clusters | None |
 | `kd` | Keyword difficulty score via SERP structure analysis | Free Serper key |
+| `kgr_auto` | KGR opportunity scoring (competition vs volume) | Optional Bing key |
+| `keyword_volume` | Real search volume via Bing Webmaster API | Free Bing key |
 | `brave_volume` | Cross-check search demand via Brave SERP signals | Free Brave key |
-| `search_performance` | Your site's real Google ranking data (GSC) | Free GSC OAuth |
+| `search_intent` | Classify keywords by search intent (info/commercial/transactional) | None |
+| `content_matrix` | Prioritized content opportunity matrix | None |
 | `competitor_gap` | Compare multiple competitor sitemaps, find content gaps | None |
 | `site_audit` | Technical SEO audit: broken links, orphan pages, missing canonical/meta/H1 | None |
+| `onpage_audit` | On-page quality scoring (7 dimensions, 0-100 per page) | None |
 | `setup_gsc` | One-time OAuth setup for Google Search Console | — |
+| `search_performance` | Your site's real Google ranking data (GSC) | Free GSC OAuth |
 
 ## Why
 
