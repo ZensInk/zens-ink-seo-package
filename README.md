@@ -1,5 +1,9 @@
 <div align="center">
 
+<img src="assets/logo.png" alt="ZensInk" width="80">
+
+# ZensInk
+
 <img src="assets/hero-banner.png" alt="ZensInk — SEO Toolkit for Indie Builders" width="100%">
 
 ### SEO Toolkit for Indie Builders

@@ -1,6 +1,10 @@
 <div align="center">
 
-# zens.ink
+<img src="assets/logo.png" alt="ZensInk" width="80">
+
+# ZensInk
+
+<img src="assets/hero-banner-zh.png" alt="ZensInk — 独立开发者的 SEO 工具包" width="100%">
 
 ### 独立开发者的 SEO 工具包
 
