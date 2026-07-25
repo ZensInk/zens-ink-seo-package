@@ -33,7 +33,7 @@ Thirteen CLI tools that cover the full SEO workflow — from discovering what pe
 | `search_intent` | Classify keywords by search intent (info/commercial/transactional) | None |
 | `content_matrix` | Prioritized content opportunity matrix | None |
 | `competitor_gap` | Compare multiple competitor sitemaps, find content gaps | None |
-| `site_audit` | Technical SEO audit: broken links, orphan pages, missing canonical/meta/H1 | None |
+| `site_audit` | Technical SEO + GEO audit: 30 checks covering links, meta, images, structured data, AI visibility | None |
 | `onpage_audit` | On-page quality scoring (7 dimensions, 0-100 per page) | None |
 | `setup_gsc` | One-time OAuth setup for Google Search Console | — |
 | `search_performance` | Your site's real Google ranking data (GSC) | Free GSC OAuth |

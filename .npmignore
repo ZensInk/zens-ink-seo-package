@@ -1,0 +1,11 @@
+.env
+.env.example
+runtime.conf
+gsc_report.py
+__pycache__/
+*.pyc
+zens_ink/__pycache__/
+zens_ink/*.pyc
+build/
+zens_ink.egg-info/
+examples/

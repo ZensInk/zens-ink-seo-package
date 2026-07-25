@@ -6,10 +6,37 @@ Checks:
   1. Orphan pages: in sitemap but no internal links found in built HTML
   2. Missing trailing slashes: internal links that cause 301 redirects
   3. Broken internal links: paths not present in sitemap (404 candidates)
-  4. Missing canonical tags: pages without <link rel="canonical">
-  5. Missing meta descriptions: pages without <meta name="description">
-  6. Missing H1: pages without an <h1> tag in server HTML
-  7. Multiple H1: pages with more than one <h1>
+  4. Missing/short/long meta descriptions: <meta name="description"> length issues
+  5. Duplicate meta descriptions: same description across multiple pages
+  6. Missing/short/long title tags: <title> length issues
+  7. Duplicate titles: same <title> across multiple pages
+  8. Missing H1: pages without an <h1> tag in server HTML
+  9. Multiple H1: pages with more than one <h1>
+ 10. Heading hierarchy skips: H1→H3 without H2
+ 11. Canonical issues: missing, duplicate, or conflicting canonical tags
+ 12. Oversized images: local image files exceeding size threshold (default 200KB)
+ 13. Missing alt text: <img> tags without alt attribute
+ 14. Missing width/height: <img> tags without dimensions (causes CLS)
+ 15. robots.txt: missing, empty, or no sitemap declaration
+ 16. Open Graph: missing og:title, og:description, og:image, og:url
+ 17. JSON-LD: pages without structured data (GEO/AI visibility)
+ 18. Viewport meta: missing or misconfigured mobile viewport
+ 19. HTML lang: missing lang attribute on <html> tag
+ 20. Thin content: pages with < 100 words of body text
+ 21. Favicon: missing favicon file or link tag
+
+GEO/AI Visibility:
+ 22. llms.txt: missing or thin (AI discovery infrastructure)
+ 23. llms-full.txt: missing comprehensive version
+ 24. Schema types: blog articles missing FAQPage/HowTo schema
+ 25. Content signals: robots.txt missing ai-input/search declarations
+ 26. Content structure: content pages lacking H2 headings, lists, or tables
+ 27. BLUF: content pages missing summary/TL;DR block
+ 28. Crawl blocking: noindex on content pages or disallow-all in robots.txt
+
+i18n & Performance:
+ 29. Hreflang: missing alternate language tags or x-default fallback
+ 30. Large HTML: pages exceeding size threshold (crawl budget impact)
 
 Works on any static build output (Astro, Next.js export, Hugo, etc.).
 
@@ -32,6 +59,7 @@ import argparse
 import csv
 import io
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -219,9 +247,13 @@ def check_canonical(dist_dir: Path) -> list[dict]:
 
 
 def check_meta_description(dist_dir: Path) -> list[dict]:
-    """Pages missing <meta name="description">."""
+    """Pages missing or suboptimal meta description."""
     issues = []
     pattern = re.compile(
+        r'<meta\s+name=["\']description["\']\s+content=["\'](.*?)["\']',
+        re.IGNORECASE | re.DOTALL,
+    )
+    exists_pattern = re.compile(
         r'<meta\s+name=["\']description["\']', re.IGNORECASE
     )
     for html_file in dist_dir.rglob("*.html"):
@@ -232,12 +264,72 @@ def check_meta_description(dist_dir: Path) -> list[dict]:
         rel = str(html_file.relative_to(dist_dir))
         if "404" in rel:
             continue
-        if not pattern.search(content):
+        if not exists_pattern.search(content):
             issues.append({
                 "type": "missing_meta_description",
                 "severity": "warning",
                 "path": rel,
                 "detail": "No meta description tag",
+            })
+            continue
+        # Check length
+        match = pattern.search(content)
+        if match:
+            desc = match.group(1).strip()
+            length = len(desc)
+            if length < 50:
+                issues.append({
+                    "type": "short_meta_description",
+                    "severity": "warning",
+                    "path": rel,
+                    "detail": f"{length} chars — too short (aim for 70-160)",
+                })
+            elif length > 200:
+                issues.append({
+                    "type": "long_meta_description",
+                    "severity": "info",
+                    "path": rel,
+                    "detail": f"{length} chars — may get truncated in SERP (aim for ≤160)",
+                })
+    return issues
+
+
+def check_title_tag(dist_dir: Path) -> list[dict]:
+    """Pages with missing, short, or long <title> tags."""
+    issues = []
+    title_pattern = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        match = title_pattern.search(content)
+        if not match:
+            issues.append({
+                "type": "missing_title",
+                "severity": "error",
+                "path": rel,
+                "detail": "No <title> tag",
+            })
+            continue
+        title = match.group(1).strip()
+        length = len(title)
+        if length < 10:
+            issues.append({
+                "type": "short_title",
+                "severity": "warning",
+                "path": rel,
+                "detail": f'"{title[:40]}..." {length} chars — too short',
+            })
+        elif length > 65:
+            issues.append({
+                "type": "long_title",
+                "severity": "info",
+                "path": rel,
+                "detail": f'"{title[:40]}..." {length} chars — may get truncated in SERP',
             })
     return issues
 
@@ -246,6 +338,7 @@ def check_h1(dist_dir: Path) -> list[dict]:
     """Pages missing H1 or having multiple H1 tags."""
     issues = []
     h1_pattern = re.compile(r"<h1[\s>]", re.IGNORECASE)
+    h1_text_pattern = re.compile(r"<h1[^>]*>(.*?)</h1>", re.IGNORECASE | re.DOTALL)
     for html_file in dist_dir.rglob("*.html"):
         try:
             content = html_file.read_text(errors="ignore")
@@ -268,6 +361,682 @@ def check_h1(dist_dir: Path) -> list[dict]:
                 "severity": "info",
                 "path": rel,
                 "detail": f"{count} H1 tags found (recommend exactly 1)",
+            })
+        else:
+            # Check H1 text length
+            text_match = h1_text_pattern.search(content)
+            if text_match:
+                h1_text = re.sub(r"<[^>]+>", "", text_match.group(1)).strip()
+                if len(h1_text) < 3:
+                    issues.append({
+                        "type": "short_h1",
+                        "severity": "info",
+                        "path": rel,
+                        "detail": f'H1 too short: "{h1_text}"',
+                    })
+    return issues
+
+
+def check_images(dist_dir: Path, max_size_kb: int = 200) -> list[dict]:
+    """Check images referenced in HTML for size, alt text, and dimensions."""
+    issues = []
+    img_pattern = re.compile(r'<img[^>]+>', re.IGNORECASE)
+    src_pattern = re.compile(r'src=["\'](\!?\./)?([^"\']+)["\']', re.IGNORECASE)
+    alt_pattern = re.compile(r'\salt=', re.IGNORECASE)
+    wh_pattern = re.compile(r'\s(width|height)=', re.IGNORECASE)
+    seen_imgs = set()
+
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+
+        for img_tag in img_pattern.findall(content):
+            src_match = src_pattern.search(img_tag)
+            if not src_match:
+                continue
+            img_src = src_match.group(2)
+
+            # Skip external images, data URIs, SVGs (vector, no size concern)
+            if img_src.startswith("http") or img_src.startswith("data:"):
+                continue
+            if img_src.endswith(".svg"):
+                # Still check alt/width/height for SVGs
+                pass
+            elif not any(img_src.endswith(ext) for ext in (".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif")):
+                continue
+
+            # Check file size for local raster images
+            if not img_src.startswith("http") and not img_src.startswith("data:"):
+                img_path = dist_dir / img_src.lstrip("/")
+                if img_path.exists() and not img_src.endswith(".svg"):
+                    file_size = img_path.stat().st_size
+                    size_kb = file_size / 1024
+                    key = (img_src, size_kb)
+                    if key not in seen_imgs:
+                        seen_imgs.add(key)
+                        if size_kb > max_size_kb:
+                            issues.append({
+                                "type": "oversized_image",
+                                "severity": "warning",
+                                "path": img_src,
+                                "source": rel,
+                                "detail": f"{size_kb:.0f}KB (threshold: {max_size_kb}KB) — compress or convert to WebP/AVIF",
+                            })
+
+            # Check alt text
+            if not alt_pattern.search(img_tag):
+                key = ("no_alt", img_src, rel)
+                if key not in seen_imgs:
+                    seen_imgs.add(key)
+                    issues.append({
+                        "type": "missing_alt_text",
+                        "severity": "warning",
+                        "path": img_src,
+                        "source": rel,
+                        "detail": "<img> missing alt attribute",
+                    })
+
+            # Check width/height (CLS prevention)
+            if not wh_pattern.search(img_tag):
+                key = ("no_wh", img_src, rel)
+                if key not in seen_imgs:
+                    seen_imgs.add(key)
+                    issues.append({
+                        "type": "missing_dimensions",
+                        "severity": "info",
+                        "path": img_src,
+                        "source": rel,
+                        "detail": "<img> missing width/height (may cause layout shift)",
+                    })
+
+    return issues
+
+
+def check_robots_txt(dist_dir: Path) -> list[dict]:
+    """Check robots.txt presence and basic validity."""
+    issues = []
+    robots_path = dist_dir / "robots.txt"
+    if not robots_path.exists():
+        issues.append({
+            "type": "missing_robots",
+            "severity": "warning",
+            "path": "robots.txt",
+            "detail": "No robots.txt found — search engines may crawl inefficiently",
+        })
+        return issues
+    content = robots_path.read_text(errors="ignore")
+    if not content.strip():
+        issues.append({
+            "type": "empty_robots",
+            "severity": "warning",
+            "path": "robots.txt",
+            "detail": "robots.txt is empty",
+        })
+    has_sitemap = "sitemap" in content.lower()
+    if not has_sitemap:
+        issues.append({
+            "type": "robots_no_sitemap",
+            "severity": "info",
+            "path": "robots.txt",
+            "detail": "robots.txt does not declare a sitemap URL",
+        })
+    return issues
+
+
+def check_open_graph(dist_dir: Path) -> list[dict]:
+    """Check for missing Open Graph tags."""
+    issues = []
+    og_tags = ["og:title", "og:description", "og:image", "og:url"]
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        for tag in og_tags:
+            if f'property="{tag}"' not in content and f"property='{tag}'" not in content:
+                issues.append({
+                    "type": "missing_open_graph",
+                    "severity": "info" if tag != "og:image" else "warning",
+                    "path": rel,
+                    "detail": f"Missing og:{tag.split(':')[1]}",
+                })
+    return issues
+
+
+def check_json_ld(dist_dir: Path) -> list[dict]:
+    """Check for structured data (JSON-LD) presence."""
+    issues = []
+    pattern = re.compile(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>',
+        re.IGNORECASE,
+    )
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        if not pattern.search(content):
+            issues.append({
+                "type": "missing_json_ld",
+                "severity": "info",
+                "path": rel,
+                "detail": "No JSON-LD structured data (important for GEO/AI visibility)",
+            })
+    return issues
+
+
+def check_viewport(dist_dir: Path) -> list[dict]:
+    """Check for viewport meta tag."""
+    issues = []
+    pattern = re.compile(
+        r'<meta\s+name=["\']viewport["\']', re.IGNORECASE
+    )
+    width_pattern = re.compile(
+        r'<meta\s+name=["\']viewport["\']\s+content=["\'](.*?)["\']',
+        re.IGNORECASE,
+    )
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        if not pattern.search(content):
+            issues.append({
+                "type": "missing_viewport",
+                "severity": "error",
+                "path": rel,
+                "detail": "No viewport meta tag (mobile rendering broken)",
+            })
+        else:
+            match = width_pattern.search(content)
+            if match and "width=device-width" not in match.group(1):
+                issues.append({
+                    "type": "bad_viewport",
+                    "severity": "warning",
+                    "path": rel,
+                    "detail": f'Viewport does not use width=device-width: "{match.group(1)}"',
+                })
+    return issues
+
+
+def check_html_lang(dist_dir: Path) -> list[dict]:
+    """Check for lang attribute on <html> tag."""
+    issues = []
+    pattern = re.compile(r"<html[^>]*>", re.IGNORECASE)
+    lang_pattern = re.compile(r'<html[^>]+\slang\s*=\s*["\']([a-zA-Z\-]+)["\']', re.IGNORECASE)
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        html_match = pattern.search(content)
+        if html_match and not lang_pattern.search(content):
+            issues.append({
+                "type": "missing_html_lang",
+                "severity": "warning",
+                "path": rel,
+                "detail": "<html> tag missing lang attribute",
+            })
+    return issues
+
+
+def check_duplicate_meta(dist_dir: Path) -> list[dict]:
+    """Check for duplicate meta descriptions and titles across pages."""
+    issues = []
+    desc_pattern = re.compile(
+        r'<meta\s+name=["\']description["\']\s+content=["\'](.*?)["\']',
+        re.IGNORECASE | re.DOTALL,
+    )
+    title_pattern = re.compile(r"<title>(.*?)</title>", re.IGNORECASE | re.DOTALL)
+
+    desc_map: dict[str, list[str]] = {}
+    title_map: dict[str, list[str]] = {}
+
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+
+        d_match = desc_pattern.search(content)
+        if d_match:
+            desc = d_match.group(1).strip()[:200]
+            if len(desc) > 10:
+                desc_map.setdefault(desc, []).append(rel)
+
+        t_match = title_pattern.search(content)
+        if t_match:
+            title = t_match.group(1).strip()
+            if len(title) > 3:
+                title_map.setdefault(title, []).append(rel)
+
+    for desc, pages in desc_map.items():
+        if len(pages) > 1:
+            issues.append({
+                "type": "duplicate_meta_description",
+                "severity": "warning",
+                "path": ", ".join(pages[:5]),
+                "detail": f'Same description on {len(pages)} pages: "{desc[:60]}..."',
+            })
+
+    for title, pages in title_map.items():
+        if len(pages) > 1:
+            issues.append({
+                "type": "duplicate_title",
+                "severity": "warning",
+                "path": ", ".join(pages[:5]),
+                "detail": f'Same title on {len(pages)} pages: "{title[:60]}"',
+            })
+
+    return issues
+
+
+def check_heading_hierarchy(dist_dir: Path) -> list[dict]:
+    """Check for heading level skips (e.g. H1→H3 without H2)."""
+    issues = []
+    heading_pattern = re.compile(r"<(h[1-6])[\s>]", re.IGNORECASE)
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        headings = [(m.group(1).lower(), m.start()) for m in heading_pattern.finditer(content)]
+        if not headings:
+            continue
+        prev_level = 0
+        for tag, _pos in headings:
+            level = int(tag[1])
+            if prev_level > 0 and level > prev_level + 1:
+                issues.append({
+                    "type": "heading_skip",
+                    "severity": "info",
+                    "path": rel,
+                    "detail": f"Heading skip: H{prev_level} → H{level}",
+                })
+            prev_level = level
+    return issues
+
+
+def check_thin_content(dist_dir: Path, min_words: int = 100) -> list[dict]:
+    """Check for pages with very little text content."""
+    issues = []
+    # Strip script/style/noscript tags then count words
+    strip_pattern = re.compile(
+        r"<(script|style|noscript|svg|head)[^>]*>.*?</\1>",
+        re.IGNORECASE | re.DOTALL,
+    )
+    tag_pattern = re.compile(r"<[^>]+>")
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        stripped = strip_pattern.sub("", content)
+        text = tag_pattern.sub(" ", stripped)
+        words = len(text.split())
+        if words < min_words:
+            issues.append({
+                "type": "thin_content",
+                "severity": "warning",
+                "path": rel,
+                "detail": f"~{words} words of body text (threshold: {min_words})",
+            })
+    return issues
+
+
+def check_multiple_canonical(dist_dir: Path) -> list[dict]:
+    """Check for pages with multiple conflicting canonical tags."""
+    issues = []
+    pattern = re.compile(
+        r'<link\s+[^>]*rel=["\']canonical["\'][^>]*>',
+        re.IGNORECASE,
+    )
+    href_pattern = re.compile(r'href=["\'](.*?)["\']', re.IGNORECASE)
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        matches = pattern.findall(content)
+        if len(matches) > 1:
+            hrefs = [href_pattern.search(m).group(1) for m in matches if href_pattern.search(m)]
+            unique = set(hrefs)
+            if len(unique) > 1:
+                issues.append({
+                    "type": "conflicting_canonical",
+                    "severity": "error",
+                    "path": rel,
+                    "detail": f"{len(matches)} canonical tags with different URLs",
+                })
+            else:
+                issues.append({
+                    "type": "duplicate_canonical",
+                    "severity": "info",
+                    "path": rel,
+                    "detail": f"{len(matches)} identical canonical tags (should be 1)",
+                })
+    return issues
+
+
+def check_favicon(dist_dir: Path) -> list[dict]:
+    """Check for favicon reference."""
+    issues = []
+    icon_patterns = [
+        re.compile(r'rel=["\']icon["\']', re.IGNORECASE),
+        re.compile(r'rel=["\']shortcut icon["\']', re.IGNORECASE),
+        re.compile(r'rel=["\']apple-touch-icon["\']', re.IGNORECASE),
+    ]
+    # Check index.html or root-level html
+    root_html = dist_dir / "index.html"
+    if not root_html.exists():
+        for h in dist_dir.glob("*.html"):
+            root_html = h
+            break
+    if root_html.exists():
+        content = root_html.read_text(errors="ignore")
+        if not any(p.search(content) for p in icon_patterns):
+            issues.append({
+                "type": "missing_favicon",
+                "severity": "info",
+                "path": "index.html",
+                "detail": "No favicon link found in <head>",
+            })
+    # Also check file exists
+    for name in ["favicon.ico", "favicon.svg", "favicon.png"]:
+        if (dist_dir / name).exists() or (dist_dir / "public" / name).exists():
+            return issues
+    if not issues:
+        issues.append({
+            "type": "missing_favicon",
+            "severity": "info",
+            "path": "/",
+            "detail": "No favicon file found in dist root",
+        })
+    return issues
+
+
+# ── GEO Checks ───────────────────────────────────────────────────────────
+
+def check_llms_txt(dist_dir: Path) -> list[dict]:
+    """Check for llms.txt files (GEO infrastructure for AI discoverability)."""
+    issues = []
+    llms = dist_dir / "llms.txt"
+    llms_full = dist_dir / "llms-full.txt"
+    if not llms.exists():
+        issues.append({
+            "type": "missing_llms_txt",
+            "severity": "warning",
+            "path": "llms.txt",
+            "detail": "No llms.txt found — AI engines won't discover your content efficiently",
+        })
+    elif llms.stat().st_size < 50:
+        issues.append({
+            "type": "thin_llms_txt",
+            "severity": "info",
+            "path": "llms.txt",
+            "detail": "llms.txt is very small — consider adding more page links",
+        })
+    if not llms_full.exists():
+        issues.append({
+            "type": "missing_llms_full",
+            "severity": "info",
+            "path": "llms-full.txt",
+            "detail": "No llms-full.txt — consider a comprehensive version for deep AI crawling",
+        })
+    return issues
+
+
+def check_schema_types(dist_dir: Path) -> list[dict]:
+    """Check for specific high-value JSON-LD schema types (Article, FAQPage, HowTo, Organization)."""
+    issues = []
+    jsonld_pattern = re.compile(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        re.IGNORECASE | re.DOTALL,
+    )
+    high_value_types = {"Article", "BlogPosting", "FAQPage", "HowTo", "Organization",
+                        "Product", "BreadcrumbList", "WebSite", "ProfilePage"}
+
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        blocks = jsonld_pattern.findall(content)
+        if not blocks:
+            continue
+        found_types = set()
+        for block in blocks:
+            for t in high_value_types:
+                if f'"@type":\s*"{t}"' in block or f'"@type":"{t}"' in block:
+                    found_types.add(t)
+        if not found_types & {"FAQPage", "HowTo"} and "blog/" in rel and "/category/" not in rel:
+            issues.append({
+                "type": "missing_faq_schema",
+                "severity": "info",
+                "path": rel,
+                "detail": "Blog article without FAQPage or HowTo schema (AI engines favor Q&A format)",
+            })
+    return issues
+
+
+def check_content_signals(dist_dir: Path) -> list[dict]:
+    """Check robots.txt for AI Content Signals (ai-train, ai-input, search)."""
+    issues = []
+    robots_path = dist_dir / "robots.txt"
+    if not robots_path.exists():
+        return issues
+    content = robots_path.read_text(errors="ignore")
+    has_ai_train = "ai-train" in content.lower()
+    has_ai_input = "ai-input" in content.lower()
+    has_search = "search" in content.lower()
+    if not has_ai_input:
+        issues.append({
+            "type": "missing_ai_input_signal",
+            "severity": "info",
+            "path": "robots.txt",
+            "detail": "No ai-input signal — AI search engines may not index you",
+        })
+    if not has_search:
+        issues.append({
+            "type": "missing_search_signal",
+            "severity": "info",
+            "path": "robots.txt",
+            "detail": "No search signal — consider declaring search engine crawling policy",
+        })
+    return issues
+
+
+def check_content_structure(dist_dir: Path) -> list[dict]:
+    """Check content pages for AI-friendly structure (H2+ headings, lists, tables)."""
+    issues = []
+    h2_pattern = re.compile(r"<h2[\s>]", re.IGNORECASE)
+    list_pattern = re.compile(r"<(ul|ol)[\s>]", re.IGNORECASE)
+    table_pattern = re.compile(r"<table[\s>]", re.IGNORECASE)
+
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel or "blog/category/" in rel:
+            continue
+        if "blog/" not in rel:
+            continue
+        h2_count = len(h2_pattern.findall(content))
+        has_lists = bool(list_pattern.search(content))
+        has_tables = bool(table_pattern.search(content))
+
+        if h2_count == 0:
+            issues.append({
+                "type": "no_h2_headings",
+                "severity": "warning",
+                "path": rel,
+                "detail": "Content page with no H2 — AI engines chunk by sections",
+            })
+        if not has_lists and not has_tables:
+            issues.append({
+                "type": "no_structured_content",
+                "severity": "info",
+                "path": rel,
+                "detail": "No lists/tables — structured data helps AI cite your content",
+            })
+    return issues
+
+
+def check_bluf(dist_dir: Path) -> list[dict]:
+    """Check content pages for BLUF (Bottom Line Up Front) summary indicators."""
+    issues = []
+    bluf_re = re.compile(
+        r'<summary|class="[^"]*(?:summary|tldr|bluf|key-takeaway)[^"]*"'
+        r'|>TL;DR<|>Key takeaways|>In summary|<!--\s*BLUF',
+        re.IGNORECASE,
+    )
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel or "blog/category/" in rel:
+            continue
+        if "blog/" not in rel:
+            continue
+        if not bluf_re.search(content):
+            issues.append({
+                "type": "missing_bluf",
+                "severity": "info",
+                "path": rel,
+                "detail": "No BLUF/summary/TL;DR block — AI engines prefer content with clear takeaways",
+            })
+    return issues
+
+
+def check_crawl_blocking(dist_dir: Path) -> list[dict]:
+    """Check for signals that block AI/search crawling."""
+    issues = []
+    noindex_pattern = re.compile(
+        r'<meta\s+name=["\']robots["\']\s+content=["\'][^"\']*noindex',
+        re.IGNORECASE,
+    )
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        if noindex_pattern.search(content) and ("blog/" in rel or rel == "index.html"):
+            issues.append({
+                "type": "noindex_on_content",
+                "severity": "warning",
+                "path": rel,
+                "detail": "Content page has noindex — search engines and AI won't index this",
+            })
+    robots_path = dist_dir / "robots.txt"
+    if robots_path.exists():
+        robots = robots_path.read_text(errors="ignore")
+        if re.search(r'user-agent:\s*\*\s*\n\s*disallow:\s*/\s*$', robots, re.IGNORECASE | re.MULTILINE):
+            issues.append({
+                "type": "block_all_crawl",
+                "severity": "error",
+                "path": "robots.txt",
+                "detail": "User-agent: * Disallow: / — blocks ALL crawling",
+            })
+    return issues
+
+
+# ── i18n & Performance ───────────────────────────────────────────────────
+
+def check_hreflang(dist_dir: Path) -> list[dict]:
+    """Check for hreflang tags on pages (i18n SEO)."""
+    issues = []
+    hreflang_pattern = re.compile(
+        r'<link\s+[^>]*rel=["\']alternate["\'][^>]*hreflang=["\']([^"\']+)["\']',
+        re.IGNORECASE,
+    )
+    # Check if site appears to be multi-language
+    has_en_dir = (dist_dir / "en").is_dir() or (dist_dir / "/en").is_dir()
+    has_zh_dir = (dist_dir / "zh").is_dir()
+
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        matches = hreflang_pattern.findall(content)
+        if not matches and rel == "index.html":
+            issues.append({
+                "type": "missing_hreflang",
+                "severity": "info",
+                "path": rel,
+                "detail": "No hreflang tags (only needed for multi-language sites)",
+            })
+        if matches:
+            if "x-default" not in [m.lower() for m in matches]:
+                issues.append({
+                    "type": "missing_x_default",
+                    "severity": "info",
+                    "path": rel,
+                    "detail": "hreflang tags present but missing x-default fallback",
+                })
+    return issues
+
+
+def check_page_size(dist_dir: Path, max_kb: int = 500) -> list[dict]:
+    """Flag HTML pages that are too large (crawl budget impact)."""
+    issues = []
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        size_kb = len(content.encode("utf-8")) / 1024
+        if size_kb > max_kb:
+            issues.append({
+                "type": "large_html",
+                "severity": "warning",
+                "path": rel,
+                "detail": f"{size_kb:.0f}KB (threshold: {max_kb}KB) — may impact crawl budget",
             })
     return issues
 
@@ -329,9 +1098,47 @@ def format_text(
         "missing_trailing_slash": "MISSING TRAILING SLASHES",
         "broken_link": "BROKEN LINKS (potential 404)",
         "missing_canonical": "MISSING CANONICAL TAGS",
+        "conflicting_canonical": "CONFLICTING CANONICAL TAGS",
+        "duplicate_canonical": "DUPLICATE CANONICAL TAGS",
         "missing_meta_description": "MISSING META DESCRIPTIONS",
+        "short_meta_description": "SHORT META DESCRIPTIONS (<50 chars)",
+        "long_meta_description": "LONG META DESCRIPTIONS (>200 chars)",
+        "duplicate_meta_description": "DUPLICATE META DESCRIPTIONS",
+        "missing_title": "MISSING TITLE TAGS",
+        "short_title": "SHORT TITLE TAGS (<10 chars)",
+        "long_title": "LONG TITLE TAGS (>65 chars)",
+        "duplicate_title": "DUPLICATE TITLE TAGS",
         "missing_h1": "MISSING H1 TAGS",
         "multiple_h1": "MULTIPLE H1 TAGS",
+        "short_h1": "SHORT H1 TEXT (<3 chars)",
+        "heading_skip": "HEADING HIERARCHY SKIPS",
+        "oversized_image": "OVERSIZED IMAGES",
+        "missing_alt_text": "MISSING ALT TEXT",
+        "missing_dimensions": "MISSING IMAGE DIMENSIONS (CLS risk)",
+        "missing_robots": "MISSING ROBOTS.TXT",
+        "empty_robots": "EMPTY ROBOTS.TXT",
+        "robots_no_sitemap": "ROBOTS.TXT MISSING SITEMAP DECLARATION",
+        "missing_open_graph": "MISSING OPEN GRAPH TAGS",
+        "missing_json_ld": "MISSING JSON-LD STRUCTURED DATA",
+        "missing_viewport": "MISSING VIEWPORT META",
+        "bad_viewport": "BAD VIEWPORT META",
+        "missing_html_lang": "MISSING HTML LANG ATTRIBUTE",
+        "thin_content": "THIN CONTENT (<100 words)",
+        "missing_favicon": "MISSING FAVICON",
+        "missing_llms_txt": "MISSING llms.txt (GEO)",
+        "thin_llms_txt": "THIN llms.txt (GEO)",
+        "missing_llms_full": "MISSING llms-full.txt (GEO)",
+        "missing_faq_schema": "MISSING FAQ/HOWTO SCHEMA (GEO)",
+        "missing_ai_input_signal": "MISSING AI-INPUT SIGNAL (GEO)",
+        "missing_search_signal": "MISSING SEARCH SIGNAL (GEO)",
+        "no_h2_headings": "NO H2 HEADINGS ON CONTENT (GEO)",
+        "no_structured_content": "NO LISTS/TABLES ON CONTENT (GEO)",
+        "missing_bluf": "MISSING BLUF/SUMMARY (GEO)",
+        "noindex_on_content": "NOINDEX ON CONTENT PAGE",
+        "block_all_crawl": "BLOCKS ALL CRAWLING",
+        "missing_hreflang": "MISSING HREFLANG (i18n)",
+        "missing_x_default": "MISSING X-DEFAULT HREFLANG",
+        "large_html": "LARGE HTML PAGES (crawl budget)",
     }
 
     for issue_type, label in type_labels.items():
@@ -418,6 +1225,7 @@ def run(
     output_format: str = "text",
     output_file: str = "",
     verbose: bool = False,
+    max_image_kb: int = 200,
 ) -> str:
     """Run the full audit and return formatted output."""
     # 1. Parse sitemap
@@ -437,6 +1245,27 @@ def run(
     all_issues.extend(check_canonical(dist_dir))
     all_issues.extend(check_meta_description(dist_dir))
     all_issues.extend(check_h1(dist_dir))
+    all_issues.extend(check_title_tag(dist_dir))
+    all_issues.extend(check_images(dist_dir, max_size_kb=max_image_kb))
+    all_issues.extend(check_robots_txt(dist_dir))
+    all_issues.extend(check_open_graph(dist_dir))
+    all_issues.extend(check_json_ld(dist_dir))
+    all_issues.extend(check_viewport(dist_dir))
+    all_issues.extend(check_html_lang(dist_dir))
+    all_issues.extend(check_duplicate_meta(dist_dir))
+    all_issues.extend(check_heading_hierarchy(dist_dir))
+    all_issues.extend(check_thin_content(dist_dir))
+    all_issues.extend(check_multiple_canonical(dist_dir))
+    all_issues.extend(check_favicon(dist_dir))
+    # GEO checks
+    all_issues.extend(check_llms_txt(dist_dir))
+    all_issues.extend(check_schema_types(dist_dir))
+    all_issues.extend(check_content_signals(dist_dir))
+    all_issues.extend(check_content_structure(dist_dir))
+    all_issues.extend(check_bluf(dist_dir))
+    all_issues.extend(check_crawl_blocking(dist_dir))
+    all_issues.extend(check_hreflang(dist_dir))
+    all_issues.extend(check_page_size(dist_dir))
 
     # 5. Format output
     if output_format == "json":
@@ -488,6 +1317,10 @@ Examples:
         help="Write to file instead of stdout",
     )
     parser.add_argument(
+        "--max-image-kb", type=int, default=200,
+        help="Max image size in KB before flagging (default: 200)",
+    )
+    parser.add_argument(
         "--verbose", action="store_true",
         help="Show all link targets",
     )
@@ -507,6 +1340,7 @@ Examples:
         output_format=args.format,
         output_file=args.output,
         verbose=args.verbose,
+        max_image_kb=args.max_image_kb,
     )
     print(result)
 

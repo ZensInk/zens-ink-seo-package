@@ -33,7 +33,7 @@
 | `search_intent` | 搜索意图分类（信息/商业/交易/导航） | 无 |
 | `content_matrix` | 优先级内容机会矩阵 | 无 |
 | `competitor_gap` | 多竞品 sitemap 对比，找出内容缺口 | 无 |
-| `site_audit` | 技术 SEO 审计：断链、孤岛页面、缺失 canonical/meta/H1 | 无 |
+| `site_audit` | 技术 SEO + GEO 审计：30 项检查，覆盖链接、元数据、图片、结构化数据、AI 可见性 | 无 |
 | `onpage_audit` | 页面质量评分（7 维度，每页 0-100 分） | 无 |
 | `setup_gsc` | Google Search Console OAuth 一次性配置 | — |
 | `search_performance` | 你在 Google 上的真实排名数据（GSC） | 免费 GSC OAuth |
