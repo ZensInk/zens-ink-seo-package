@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="ZensInk" width="80">
+<img src="assets/logo.svg" alt="ZensInk" width="80">
 
 # ZensInk
 
