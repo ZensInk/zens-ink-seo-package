@@ -1,6 +1,6 @@
 <div align="center">
 
-# zens.ink
+<img src="assets/hero-banner.png" alt="ZensInk — SEO Toolkit for Indie Builders" width="100%">
 
 ### SEO Toolkit for Indie Builders
 

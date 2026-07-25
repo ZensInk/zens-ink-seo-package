@@ -1,0 +1,10 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="zensink-z" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="28" fill="url(#zensink-z)"/>
+  <path d="M 30 36 L 90 36 L 90 46 L 50 84 L 90 84 L 90 94 L 30 94 L 30 84 L 70 46 L 30 46 Z" fill="white"/>
+</svg>
