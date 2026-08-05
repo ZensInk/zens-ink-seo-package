@@ -577,7 +577,7 @@ def check_html_lang(dist_dir: Path) -> list[dict]:
     """Check for lang attribute on <html> tag."""
     issues = []
     pattern = re.compile(r"<html[^>]*>", re.IGNORECASE)
-    lang_pattern = re.compile(r'<html[^>]+\slang\s*=\s*["\']([a-zA-Z\-]+)["\']', re.IGNORECASE)
+    lang_pattern = re.compile(r'<html[^>]*\slang\s*=\s*["\']([a-zA-Z\-]+)["\']', re.IGNORECASE)
     for html_file in dist_dir.rglob("*.html"):
         try:
             content = html_file.read_text(errors="ignore")
@@ -839,7 +839,7 @@ def check_schema_types(dist_dir: Path) -> list[dict]:
         found_types = set()
         for block in blocks:
             for t in high_value_types:
-                if f'"@type":\s*"{t}"' in block or f'"@type":"{t}"' in block:
+                if f'"@type":\\s*"{t}"' in block or f'"@type":"{t}"' in block:
                     found_types.add(t)
         if not found_types & {"FAQPage", "HowTo"} and "blog/" in rel and "/category/" not in rel:
             issues.append({
@@ -847,6 +847,54 @@ def check_schema_types(dist_dir: Path) -> list[dict]:
                 "severity": "info",
                 "path": rel,
                 "detail": "Blog article without FAQPage or HowTo schema (AI engines favor Q&A format)",
+            })
+    return issues
+
+
+def check_commercial_schema(dist_dir: Path) -> list[dict]:
+    """Check that commercial pages (pricing, themes, services, unlock) have Product/Service schema.
+
+    Google uses Product JSON-LD to populate rich results (price, availability, ratings).
+    Pages that sell things without this schema are invisible to Google Shopping and
+    commercial rich results — a high-impact blind spot.
+    """
+    issues: list[dict] = []
+    jsonld_re = re.compile(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        re.IGNORECASE | re.DOTALL,
+    )
+    # Path patterns that indicate a commercial/product page
+    commercial_patterns = (
+        "pricing", "themes/", "unlock", "services",
+        "buy", "checkout", "plans", "shop/",
+    )
+    commercial_types = {"Product", "Service", "SoftwareApplication", "Offer"}
+
+    for html_file in dist_dir.rglob("*.html"):
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+        if not any(pat in rel for pat in commercial_patterns):
+            continue
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+        blocks = jsonld_re.findall(content)
+        found = False
+        for block in blocks:
+            for t in commercial_types:
+                if f'"@type":\\s*"{t}"' in block or f'"@type":"{t}"' in block:
+                    found = True
+                    break
+            if found:
+                break
+        if not found:
+            issues.append({
+                "type": "missing_product_schema",
+                "severity": "warning",
+                "path": rel,
+                "detail": "Commercial/pricing page without Product, Service, or Offer JSON-LD — invisible to Google Shopping & commercial rich results",
             })
     return issues
 
@@ -1041,6 +1089,209 @@ def check_page_size(dist_dir: Path, max_kb: int = 500) -> list[dict]:
     return issues
 
 
+# ── Sitemap URL Inventory ────────────────────────────────────────────────
+
+def check_sitemap_inventory(sitemap_path: Path, base_path: str = "") -> list[dict]:
+    """Group sitemap URLs by top-level directory to produce a site map overview."""
+    issues: list[dict] = []
+    sitemap_urls = parse_sitemap(sitemap_path, base_path)
+    if not sitemap_urls:
+        return issues
+
+    # Group by first path segment
+    from collections import OrderedDict
+    groups: dict[str, list[str]] = OrderedDict()
+    for url_path in sorted(sitemap_urls):
+        clean = url_path.strip("/")
+        if not clean:
+            top = "/ (root)"
+        else:
+            parts = clean.split("/")
+            top = f"/{parts[0]}/" if len(parts) > 1 else f"/{parts[0]}"
+        groups.setdefault(top, []).append(url_path)
+
+    # Report as info — helps understand site structure
+    inventory_lines = []
+    for dir_name, urls in sorted(groups.items(), key=lambda x: -len(x[1])):
+        example = urls[0] if urls else ""
+        inventory_lines.append(f"  {dir_name}: {len(urls)} URLs (e.g. {example})")
+
+    if inventory_lines:
+        issues.append({
+            "type": "sitemap_inventory",
+            "severity": "info",
+            "path": str(sitemap_path),
+            "detail": f"Sitemap URL inventory ({len(sitemap_urls)} URLs across {len(groups)} directories):\n" + "\n".join(inventory_lines),
+        })
+    return issues
+
+
+# ── Staging Subdomain Leak Detection ──────────────────────────────────────
+
+_STAGING_PREFIXES = ("test.", "staging.", "dev.", "preview.", "beta.", "uat.")
+
+def check_staging_leak(dist_dir: Path) -> list[dict]:
+    """Detect staging/dev subdomain URLs that leaked into production build."""
+    issues: list[dict] = []
+    seen_domains: set[str] = set()
+
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+
+        # Check canonical, og:url, and absolute links for staging domains
+        url_pattern = r'https?://([a-z0-9][-a-z0-9]*\.[a-z0-9][-a-z0-9.]*?)[:/"]'
+        found = re.findall(url_pattern, content.lower())
+        for domain in found:
+            if any(domain.startswith(prefix) for prefix in _STAGING_PREFIXES):
+                if domain not in seen_domains:
+                    seen_domains.add(domain)
+                    issues.append({
+                        "type": "staging_subdomain_leak",
+                        "severity": "error",
+                        "path": rel,
+                        "detail": f"Staging subdomain '{domain}' found in production HTML — may cause indexing of test environments",
+                    })
+
+        # Also check for localhost IPs
+        if re.search(r'https?://(?:localhost|127\.0\.0\.1|0\.0\.0\.0)[:/"\n]', content):
+            issues.append({
+                "type": "staging_subdomain_leak",
+                "severity": "error",
+                "path": rel,
+                "detail": "localhost/127.0.0.1 URL found in production HTML",
+            })
+
+    return issues
+
+
+# ── Schema Field Validation ───────────────────────────────────────────────
+
+# Required fields per Schema.org @type (missing → warning)
+_SCHEMA_REQUIRED: dict[str, list[str]] = {
+    "Article": ["headline", "datePublished", "author"],
+    "BlogPosting": ["headline", "datePublished", "author"],
+    "NewsArticle": ["headline", "datePublished", "author"],
+    "Product": ["name", "offers"],
+    "FAQPage": ["mainEntity"],
+    "HowTo": ["name", "step"],
+    "Organization": ["name", "url"],
+    "WebSite": ["name", "url"],
+    "LocalBusiness": ["name", "address"],
+    "BreadcrumbList": ["itemListElement"],
+}
+
+# Recommended fields (missing → info)
+_SCHEMA_RECOMMENDED: dict[str, list[str]] = {
+    "Article": ["image", "dateModified", "publisher"],
+    "BlogPosting": ["image", "dateModified", "publisher"],
+    "Product": ["aggregateRating", "brand", "description"],
+    "Organization": ["logo", "sameAs"],
+}
+
+# Nested field requirements: parent → required sub-fields
+_SCHEMA_NESTED: dict[str, dict[str, list[str]]] = {
+    "Product": {"offers": ["price", "priceCurrency"]},
+    "FAQPage": {"mainEntity": ["name", "acceptedAnswer"]},
+    "HowTo": {"step": ["text"]},
+}
+
+def check_schema_fields(dist_dir: Path) -> list[dict]:
+    """Validate JSON-LD structured data: required/recommended fields + nesting."""
+    issues: list[dict] = []
+    jsonld_re = re.compile(
+        r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        re.DOTALL | re.IGNORECASE,
+    )
+
+    for html_file in dist_dir.rglob("*.html"):
+        try:
+            content = html_file.read_text(errors="ignore")
+        except Exception:
+            continue
+
+        rel = str(html_file.relative_to(dist_dir))
+        if "404" in rel:
+            continue
+
+        for match in jsonld_re.finditer(content):
+            raw = match.group(1).strip()
+            if not raw:
+                continue
+            try:
+                data = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+
+            # Flatten @graph
+            schemas = []
+            if isinstance(data, list):
+                schemas = [s for s in data if isinstance(s, dict)]
+            elif isinstance(data, dict):
+                if "@graph" in data and isinstance(data["@graph"], list):
+                    schemas = [s for s in data["@graph"] if isinstance(s, dict)]
+                else:
+                    schemas = [data]
+
+            for schema in schemas:
+                stype = schema.get("@type", "")
+                if isinstance(stype, list):
+                    stype = stype[0] if stype else ""
+                if not isinstance(stype, str) or not stype:
+                    continue
+
+                # Check required fields
+                required = _SCHEMA_REQUIRED.get(stype, [])
+                for field in required:
+                    val = schema.get(field)
+                    if val is None or (isinstance(val, str) and not val.strip()):
+                        issues.append({
+                            "type": "schema_missing_field",
+                            "severity": "warning",
+                            "path": rel,
+                            "detail": f"JSON-LD {stype}: missing required field '{field}'",
+                        })
+
+                # Check recommended fields
+                recommended = _SCHEMA_RECOMMENDED.get(stype, [])
+                for field in recommended:
+                    val = schema.get(field)
+                    if val is None or (isinstance(val, str) and not val.strip()):
+                        issues.append({
+                            "type": "schema_recommended_field",
+                            "severity": "info",
+                            "path": rel,
+                            "detail": f"JSON-LD {stype}: missing recommended field '{field}'",
+                        })
+
+                # Check nested fields
+                nested_reqs = _SCHEMA_NESTED.get(stype, {})
+                for parent_field, sub_fields in nested_reqs.items():
+                    parent_val = schema.get(parent_field)
+                    if parent_val is None:
+                        continue
+                    items = parent_val if isinstance(parent_val, list) else [parent_val]
+                    if items and isinstance(items[0], dict):
+                        first = items[0]
+                        for sf in sub_fields:
+                            sub_val = first.get(sf)
+                            if sub_val is None or (isinstance(sub_val, str) and not sub_val.strip()):
+                                issues.append({
+                                    "type": "schema_nested_field",
+                                    "severity": "warning",
+                                    "path": rel,
+                                    "detail": f"JSON-LD {stype}.{parent_field}: missing '{sf}'",
+                                })
+
+    return issues
+
+
 # ── Link source map ──────────────────────────────────────────────────────
 
 def build_link_map(
@@ -1120,6 +1371,7 @@ def format_text(
         "robots_no_sitemap": "ROBOTS.TXT MISSING SITEMAP DECLARATION",
         "missing_open_graph": "MISSING OPEN GRAPH TAGS",
         "missing_json_ld": "MISSING JSON-LD STRUCTURED DATA",
+        "missing_product_schema": "COMMERCIAL PAGE WITHOUT PRODUCT/SERVICE SCHEMA",
         "missing_viewport": "MISSING VIEWPORT META",
         "bad_viewport": "BAD VIEWPORT META",
         "missing_html_lang": "MISSING HTML LANG ATTRIBUTE",
@@ -1139,6 +1391,11 @@ def format_text(
         "missing_hreflang": "MISSING HREFLANG (i18n)",
         "missing_x_default": "MISSING X-DEFAULT HREFLANG",
         "large_html": "LARGE HTML PAGES (crawl budget)",
+        "sitemap_inventory": "SITEMAP URL INVENTORY",
+        "staging_subdomain_leak": "STAGING SUBDOMAIN LEAK (critical)",
+        "schema_missing_field": "SCHEMA MISSING REQUIRED FIELDS",
+        "schema_recommended_field": "SCHEMA MISSING RECOMMENDED FIELDS",
+        "schema_nested_field": "SCHEMA NESTED FIELD ISSUES",
     }
 
     for issue_type, label in type_labels.items():
@@ -1260,12 +1517,17 @@ def run(
     # GEO checks
     all_issues.extend(check_llms_txt(dist_dir))
     all_issues.extend(check_schema_types(dist_dir))
+    all_issues.extend(check_commercial_schema(dist_dir))
     all_issues.extend(check_content_signals(dist_dir))
     all_issues.extend(check_content_structure(dist_dir))
     all_issues.extend(check_bluf(dist_dir))
     all_issues.extend(check_crawl_blocking(dist_dir))
     all_issues.extend(check_hreflang(dist_dir))
     all_issues.extend(check_page_size(dist_dir))
+    # New checks (inspired by community best practices)
+    all_issues.extend(check_sitemap_inventory(sitemap_path, base_path))
+    all_issues.extend(check_staging_leak(dist_dir))
+    all_issues.extend(check_schema_fields(dist_dir))
 
     # 5. Format output
     if output_format == "json":
