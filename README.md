@@ -115,6 +115,30 @@ npx skills add respectevery01/zens-ink-seo-package --skill zens-ink
 
 Then just tell your AI: "find keywords for my tarot site" and it runs the tools for you. See [SKILL.md](SKILL.md) for details.
 
+## Use as MCP Server (DSH / Claude / Codex)
+
+ZensInk ships a built-in MCP stdio server — every tool becomes a native model tool (`mcp__zensink__keyword_research`, `mcp__zensink__kd`, ...). Pure stdlib, zero extra dependencies.
+
+```bash
+python3 -m zens_ink.mcp    # MCP stdio server on stdin/stdout
+```
+
+Add to [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) — `~/.dsh/profiles/web/cordis.patch.yml`:
+
+```yaml
+- insert:
+    - id: mcp-zensink
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: zensink
+        transport: stdio
+        command: python3
+        args: ['-m', 'zens_ink.mcp']
+        toolCallTimeoutMs: 300000
+```
+
+For other MCP clients (Claude Desktop, Codex, ...), point the stdio command at `python3 -m zens_ink.mcp`. API keys are read from the package root `.env` as usual.
+
 ## Typical Workflow
 
 ```

@@ -10,7 +10,7 @@ description: >-
   on-page quality scoring (7 dimensions, 0-100 per page), and real ranking data
   (Google Search Console). Pure Python stdlib — no pip install required beyond this
   package. Optional API keys unlock volume data but all core tools work without any keys.
-version: "1.2.0"
+version: "1.2.1"
 authors:
   - name: Jask
     url: https://zens.ink
@@ -249,3 +249,4 @@ Learn more: https://zens.ink
 - **Zero dependencies**: Pure Python stdlib. Only `zens-ink` package itself needs installing.
 - **Cross-platform**: macOS, Linux, Windows.
 - **Privacy-first**: All processing local. No telemetry, no tracking.
+- **MCP server**: `python3 -m zens_ink.mcp` (or `zens-ink mcp`) exposes all tools as native model tools via the MCP stdio protocol — works with DSH (@deepseek-ai/dsh-mcp-client), Claude Desktop, Codex. Zero extra dependencies.

@@ -15,6 +15,7 @@ TOOLS = {
     "brave_volume":       "Estimate search demand via Brave SERP signals",
     # Intent & Strategy
     "search_intent":      "Classify keywords by search intent (info/commercial/transactional/navigational)",
+    "serp_intent":        "SERP-based intent analysis (reverse-engineer Google's actual ranking behavior)",
     "content_matrix":     "Generate prioritized content opportunity matrix",
     # Competitive
     "competitor_gap":     "Analyze competitor content via sitemaps",
@@ -24,6 +25,8 @@ TOOLS = {
     # GSC
     "setup_gsc":          "One-time OAuth setup for Search Console",
     "search_performance": "Your site's Google search data (GSC)",
+    # MCP server
+    "mcp":               "Run as MCP stdio server (DSH / Claude / Codex integration)",
 }
 
 
@@ -34,7 +37,7 @@ def show_help():
     print("Tools:")
     for name, desc in TOOLS.items():
         print(f"  {name:25s}  {desc}")
-    print(f"\n  13 tools — all pure stdlib, zero pip dependencies")
+    print(f"\n  14 tools — all pure stdlib, zero pip dependencies")
     print(f"\nDocs: https://github.com/respectevery01/zens-ink-seo-package\n")
 
 
@@ -54,6 +57,9 @@ def main():
     # Import and run the tool's main() with remaining args
     mod = __import__(f"zens_ink.{tool}", fromlist=["main"])
     sys.argv = [tool] + args[1:]
+    if tool == "mcp":
+        mod.serve()  # MCP stdio server loop
+        return
     mod.main()
 
 

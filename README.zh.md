@@ -104,6 +104,30 @@ npx skills add respectevery01/zens-ink-seo-package --skill zens-ink
 
 然后直接对 AI 说：「帮我找塔罗相关的关键词」，AI 会自动调用工具。详见 [SKILL.md](SKILL.md)。
 
+## 作为 MCP Server 使用（DSH / Claude / Codex）
+
+ZensInk 内置 MCP stdio server，全部工具自动变成模型的原生工具（`mcp__zensink__keyword_research`、`mcp__zensink__kd` 等）。纯标准库实现，零额外依赖。
+
+```bash
+python3 -m zens_ink.mcp    # 以 MCP stdio server 方式运行
+```
+
+接入 [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness) —— 编辑 `~/.dsh/profiles/web/cordis.patch.yml`：
+
+```yaml
+- insert:
+    - id: mcp-zensink
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: zensink
+        transport: stdio
+        command: python3
+        args: ['-m', 'zens_ink.mcp']
+        toolCallTimeoutMs: 300000
+```
+
+其他 MCP 客户端（Claude Desktop、Codex 等）把 stdio command 指向 `python3 -m zens_ink.mcp` 即可。API key 照常从包根目录 `.env` 读取。
+
 ## 典型工作流
 
 ```
