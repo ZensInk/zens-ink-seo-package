@@ -139,6 +139,8 @@ Add to [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness)
 
 For other MCP clients (Claude Desktop, Codex, ...), point the stdio command at `python3 -m zens_ink.mcp`. API keys are read from the package root `.env` as usual.
 
+If the [Pro package](https://zens.ink) (`zens_ink_pro`) is installed alongside, its tools (winability, content_radar, competitor_radar, geo_score, geo_visibility, gap_deep, full_audit) are picked up automatically — the same server exposes everything available on that machine. OSS-only installs stay OSS-only.
+
 ## Typical Workflow
 
 ```

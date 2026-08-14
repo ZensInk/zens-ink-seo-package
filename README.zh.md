@@ -128,6 +128,8 @@ python3 -m zens_ink.mcp    # 以 MCP stdio server 方式运行
 
 其他 MCP 客户端（Claude Desktop、Codex 等）把 stdio command 指向 `python3 -m zens_ink.mcp` 即可。API key 照常从包根目录 `.env` 读取。
 
+若同机装有 [Pro 包](https://zens.ink)（`zens_ink_pro`），其工具（winability、content_radar、competitor_radar、geo_score、geo_visibility、gap_deep、full_audit）会被自动发现并注册——同一个 server 暴露该机器上所有可用工具；纯开源安装则只有开源工具。
+
 ## 典型工作流
 
 ```

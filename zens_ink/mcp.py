@@ -51,7 +51,7 @@ _PYTHON = sys.executable or shutil.which("python3") or "python3"
 TOOLS = [
     {
         "name": "keyword_research",
-        "module": "keyword_research",
+        "module": "zens_ink.keyword_research",
         "description": (
             "Google Autocomplete long-tail keyword mining. Free, no API key. "
             "Discover what people actually type around a seed keyword; "
@@ -68,7 +68,7 @@ TOOLS = [
     },
     {
         "name": "keyword_volume",
-        "module": "keyword_volume",
+        "module": "zens_ink.keyword_volume",
         "description": (
             "Real search volumes via Bing Webmaster API. Requires BING_API_KEY in .env. "
             "Pass keywords as an array (comma-separated also accepted by the CLI)."
@@ -85,7 +85,7 @@ TOOLS = [
     },
     {
         "name": "brave_volume",
-        "module": "brave_volume",
+        "module": "zens_ink.brave_volume",
         "description": (
             "Brave Search API volume estimates — supplements Bing's volume gaps. "
             "Requires BRAVE_API_KEY in .env."
@@ -103,7 +103,7 @@ TOOLS = [
     },
     {
         "name": "keyword_cluster",
-        "module": "keyword_cluster",
+        "module": "zens_ink.keyword_cluster",
         "description": (
             "Group raw keywords into semantic topic clusters (pure-stdlib similarity). "
             "Feed the output JSON into content_matrix together with kgr_auto scores."
@@ -120,7 +120,7 @@ TOOLS = [
     },
     {
         "name": "kgr_auto",
-        "module": "kgr_auto",
+        "module": "zens_ink.kgr_auto",
         "description": (
             "Automated KGR (Keyword Golden Ratio) opportunity scoring: allintitle-based "
             "low-competition keyword detection with search volume. Needs Bing volume key."
@@ -137,7 +137,7 @@ TOOLS = [
     },
     {
         "name": "content_matrix",
-        "module": "content_matrix",
+        "module": "zens_ink.content_matrix",
         "description": (
             "Prioritized content opportunity matrix: joins kgr_auto scored keywords "
             "(CSV or JSON file) with keyword_cluster clusters (JSON file). File-based tool."
@@ -150,7 +150,7 @@ TOOLS = [
     },
     {
         "name": "kd",
-        "module": "kd",
+        "module": "zens_ink.kd",
         "description": (
             "Keyword Difficulty estimator — SERP-structure-based (homepage ratio, page "
             "types, niche maturity), not Ahrefs DR. Requires SERPER_API_KEY in .env."
@@ -168,7 +168,7 @@ TOOLS = [
     },
     {
         "name": "serp_intent",
-        "module": "serp_intent",
+        "module": "zens_ink.serp_intent",
         "description": (
             "Reverse-engineer search intent from actual Google SERP composition "
             "(page-type weighting, SERP features). Cross-validates with keyword-based "
@@ -187,7 +187,7 @@ TOOLS = [
     },
     {
         "name": "search_intent",
-        "module": "search_intent",
+        "module": "zens_ink.search_intent",
         "description": (
             "Keyword-based search intent classification (informational / commercial / "
             "transactional / navigational + question/buyer/problem markers). No API key."
@@ -202,7 +202,7 @@ TOOLS = [
     },
     {
         "name": "geo_fanout",
-        "module": "geo_fanout",
+        "module": "zens_ink.geo_fanout",
         "description": (
             "GEO fan-out: reverse-engineer the query variants AI search engines generate "
             "for a topic (Query Fan-out content planning). Free autocomplete-backed."
@@ -219,7 +219,7 @@ TOOLS = [
     },
     {
         "name": "reddit_blueocean",
-        "module": "reddit_blueocean",
+        "module": "zens_ink.reddit_blueocean",
         "description": (
             "Find high-traffic, low-competition Reddit posts via Google Autocomplete "
             "mining — blue-ocean subreddit demand discovery. Free."
@@ -237,7 +237,7 @@ TOOLS = [
     },
     {
         "name": "competitor_gap",
-        "module": "competitor_gap",
+        "module": "zens_ink.competitor_gap",
         "description": (
             "Competitor content gap: fetch sitemap(s) and list topics competitors cover "
             "that you don't. Pass url (one sitemap) or compare (several). Free."
@@ -251,7 +251,7 @@ TOOLS = [
     },
     {
         "name": "site_audit",
-        "module": "site_audit",
+        "module": "zens_ink.site_audit",
         "description": (
             "Technical SEO audit of a built static site directory (33 checks: links/meta/"
             "images/GEO/i18n/performance/structured data). Point dist at the build output."
@@ -269,7 +269,7 @@ TOOLS = [
     },
     {
         "name": "onpage_audit",
-        "module": "onpage_audit",
+        "module": "zens_ink.onpage_audit",
         "description": (
             "On-page quality scoring (7 dimensions, 100-point A-F) for built HTML pages. "
             "Optionally weight by a keywords file. Point dist at the build output."
@@ -286,7 +286,7 @@ TOOLS = [
     },
     {
         "name": "search_performance",
-        "module": "search_performance",
+        "module": "zens_ink.search_performance",
         "description": (
             "Your site's real Google Search Console data (impressions/clicks/position). "
             "Requires GSC_SITE_URL + ADC credentials configured via setup_gsc."
@@ -303,6 +303,23 @@ TOOLS = [
         "timeout": 120,
     },
 ]
+
+
+def _extra_tools():
+    """Merge Pro tools when zens_ink_pro is installed next to this package.
+
+    OSS-only installs never ship Pro code, so the import simply fails and the
+    tool list stays OSS-only. No Pro metadata lives in this public file.
+    """
+    try:
+        from zens_ink_pro.mcp_registry import PRO_TOOLS  # type: ignore
+        return list(PRO_TOOLS)
+    except Exception:
+        return []
+
+
+# Final tool registry: OSS tools + (if present) Pro tools.
+TOOLS = TOOLS + _extra_tools()
 
 MAX_OUTPUT_CHARS = 60000
 
@@ -322,8 +339,8 @@ def tool_definitions():
             prop = _schema_type(p)
             prop["description"] = p["description"]
             props[p["name"]] = prop
-            if not p.get("multiple"):
-                required.append(p["name"])  # single positionals are required
+            if not p.get("multiple") and not p.get("optional"):
+                required.append(p["name"])  # single positionals are required unless marked optional
         for f in t.get("flags", []):
             prop = _schema_type(f)
             prop["description"] = f["description"]
@@ -343,11 +360,11 @@ def tool_definitions():
 def build_command(name, arguments):
     t = next(x for x in TOOLS if x["name"] == name)
     arguments = arguments or {}
-    cmd = [_PYTHON, "-m", f"zens_ink.{t['module']}"]
+    cmd = [_PYTHON, "-m", t["module"]]
     for p in t.get("positional", []):
         v = arguments.get(p["name"])
         if v is None:
-            if p.get("multiple"):
+            if p.get("multiple") or p.get("optional"):
                 continue
             raise ValueError(f"missing required argument '{p['name']}'")
         if isinstance(v, list):
