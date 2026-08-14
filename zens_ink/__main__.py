@@ -37,7 +37,7 @@ def show_help():
     print("Tools:")
     for name, desc in TOOLS.items():
         print(f"  {name:25s}  {desc}")
-    print(f"\n  14 tools — all pure stdlib, zero pip dependencies")
+    print(f"\n  16 tools — all pure stdlib, zero pip dependencies")
     print(f"\nDocs: https://github.com/respectevery01/zens-ink-seo-package\n")
 
 
