@@ -153,7 +153,10 @@ TOOLS = [
         "module": "zens_ink.kd",
         "description": (
             "Keyword Difficulty estimator — SERP-structure-based (homepage ratio, page "
-            "types, niche maturity), not Ahrefs DR. Requires SERPER_API_KEY in .env."
+            "types, niche maturity), not Ahrefs DR. Includes brand-keyword triple-"
+            "fingerprint detection with derivative-entry difficulty (截流难度), link "
+            "budget estimate (KD→referring domains), and optional Markdown report. "
+            "Requires SERPER_API_KEY in .env."
         ),
         "positional": [
             {"name": "keyword", "type": "string", "description": "Keyword to analyze"},
@@ -163,6 +166,7 @@ TOOLS = [
             {"name": "hl", "flag": "--hl", "type": "string", "description": "Language (default en)"},
             {"name": "zh", "flag": "--zh", "type": "boolean", "description": "Chinese mode (gl=cn, hl=zh-CN)"},
             {"name": "no_volume", "flag": "--no-volume", "type": "boolean", "description": "Skip search volume lookup (faster)"},
+            {"name": "markdown", "flag": "--markdown", "type": "boolean", "description": "Self-contained Markdown report (for AI ingestion)"},
         ],
         "timeout": 180,
     },
@@ -266,6 +270,28 @@ TOOLS = [
         ],
         "json_flag": False,  # uses --format json instead of --json
         "timeout": 300,
+    },
+    {
+        "name": "rank_tracker",
+        "module": "zens_ink.rank_tracker",
+        "description": (
+            "SQLite-backed keyword rank tracker: add keywords for your domain, "
+            "run check to snapshot current Google positions (Serper), then see "
+            "status/trend/history over time. State persists in ~/.zens_ink/ranks.db."
+        ),
+        "positional": [
+            {"name": "action", "type": "string", "description": "add | check | status | trend | history | remove"},
+        ],
+        "flags": [
+            {"name": "keywords", "flag": "--keywords", "type": "string", "description": "Keyword(s) for add/history/remove (comma-separated)"},
+            {"name": "domain", "flag": "--domain", "type": "string", "description": "Your domain to track (add)"},
+            {"name": "tag", "flag": "--tag", "type": "string", "description": "Optional group tag (add)"},
+            {"name": "gl", "flag": "--gl", "type": "string", "description": "Geo (default us)"},
+            {"name": "hl", "flag": "--hl", "type": "string", "description": "Language (default en)"},
+            {"name": "num", "flag": "--num", "type": "integer", "description": "SERP depth per keyword (default 20)"},
+            {"name": "limit", "flag": "--limit", "type": "integer", "description": "History rows (default 20)"},
+        ],
+        "timeout": 600,
     },
     {
         "name": "onpage_audit",

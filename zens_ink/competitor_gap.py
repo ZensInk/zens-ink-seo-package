@@ -20,16 +20,61 @@ from urllib.parse import urlparse
 
 
 def fetch_sitemap(url: str, timeout: int = 10, depth: int = 0) -> list[str]:
-    """Fetch and parse sitemap XML, following nested sitemap indexes."""
+    """Fetch and parse sitemap XML, following nested sitemap indexes.
+
+    Accepts a sitemap URL, a site root (auto-discovers via robots.txt /
+    common paths), or a bare domain. Never raises — returns [] on failure.
+    """
     if depth > 2:
         return []
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    try:
-        resp = urllib.request.urlopen(req, timeout=timeout)
-        data = resp.read().decode(errors="ignore")
-    except Exception as e:
-        print(f"  [warn] failed: {url} ({e})", file=sys.stderr)
+
+    url = url.strip()
+    if not url:
         return []
+    if "://" not in url:
+        url = "https://" + url
+
+    candidates = [url]
+    # If the URL has no path (bare root/domain), try discovery
+    parsed = urlparse(url)
+    if parsed.path in ("", "/") and not url.endswith(".xml"):
+        candidates = [
+            url.rstrip("/") + "/sitemap.xml",
+            url.rstrip("/") + "/sitemap_index.xml",
+            url.rstrip("/") + "/sitemap-index.xml",
+        ]
+        # robots.txt Sitemap: declaration wins — check it first
+        try:
+            req = urllib.request.Request(
+                url.rstrip("/") + "/robots.txt",
+                headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                for line in resp.read().decode(errors="ignore").splitlines():
+                    m = re.match(r"(?i)sitemap:\s*(\S+)", line.strip())
+                    if m:
+                        candidates.insert(0, m.group(1))
+                        break
+        except Exception:
+            pass
+
+    for cand in candidates:
+        req = urllib.request.Request(cand, headers={"User-Agent": "Mozilla/5.0"})
+        try:
+            resp = urllib.request.urlopen(req, timeout=timeout)
+            data = resp.read().decode(errors="ignore")
+        except Exception:
+            continue
+        urls = re.findall(r"<loc>([^<]+)</loc>", data)
+        if not urls:
+            continue
+        xml_urls = [u for u in urls if u.endswith(".xml")]
+        page_urls = [u for u in urls if not u.endswith(".xml")]
+        for sub in xml_urls[:10]:
+            page_urls.extend(fetch_sitemap(sub, timeout, depth + 1))
+        return page_urls
+
+    print(f"  [warn] no sitemap found for {url}", file=sys.stderr)
+    return []
 
     urls = re.findall(r"<loc>([^<]+)</loc>", data)
     xml_urls = [u for u in urls if u.endswith(".xml")]
