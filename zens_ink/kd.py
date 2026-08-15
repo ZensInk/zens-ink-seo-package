@@ -336,19 +336,34 @@ def detect_brand_keyword(results, keyword, serp_data=None):
     kw_lower = keyword.lower().strip()
     kw_words = [w for w in kw_lower.split() if len(w) >= 3] or [kw_lower.split()[0]]
     primary = kw_words[0]
+    joined = kw_lower.replace(" ", "")
 
     fingerprints = []
     brand_root = None
     brand_domain = None
 
-    # F1: same-name official domain in top 3
+    def _brand_label(domain):
+        """Root brand label of a domain, stripping service subdomains
+        (docs./support./chat./...) so docs.google.com counts as google."""
+        d = domain.replace("www.", "")
+        parts = d.split(".")
+        strip = {"docs", "support", "help", "mail", "m", "play", "chat",
+                 "developer", "developers", "business", "news", "blog", "app"}
+        while len(parts) > 2 and parts[0] in strip:
+            parts = parts[1:]
+        return parts[0]
+
+    # F1: same-name official domain in top 3 (exact / prefix / near-plural match).
+    # Guards against generic-word false fires: prefix match requires brand len>=5,
+    # plural match requires primary len>=5 (excludes "time"-style generic roots).
     for r in results[:3]:
         dom = r["domain"].replace("www.", "")
-        brand_part = dom.split(".")[0]
+        brand_part = _brand_label(dom)
         if len(brand_part) >= 4 and (
-            primary == brand_part
-            or primary.startswith(brand_part)
-            or (brand_part.startswith(primary) and len(brand_part) - len(primary) <= 2)
+            joined == brand_part
+            or (len(brand_part) >= 5 and joined.startswith(brand_part))
+            or (len(primary) >= 5 and brand_part.startswith(primary)
+                and len(brand_part) - len(primary) <= 2)
         ):
             fingerprints.append("official_domain")
             brand_root = brand_part
@@ -356,13 +371,11 @@ def detect_brand_keyword(results, keyword, serp_data=None):
             brand_domain = ".".join(parts[-2:]) if len(parts) >= 2 else dom
             break
 
-    # F2: brand domain family occupies >=3 slots
+    # F2: brand domain family occupies >=2 slots (expanded-sitelinks proxy:
+    # brand SERPs surface multiple same-brand pages; Serper has no sitelinks field)
     if brand_root:
-        fam = sum(
-            1 for r in results
-            if r["domain"].replace("www.", "").split(".")[0] == brand_root
-        )
-        if fam >= 3:
+        fam = sum(1 for r in results if _brand_label(r["domain"]) == brand_root)
+        if fam >= 2:
             fingerprints.append("brand_dominance")
 
     # F3: platform ecosystem density (app store / brand community)
