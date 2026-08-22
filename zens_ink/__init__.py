@@ -1,4 +1,4 @@
 """zens.ink — Free SEO keyword research toolkit."""
-__version__ = "1.6.1"
+__version__ = "1.4.4"
 
 TOOLS_COUNT = 16

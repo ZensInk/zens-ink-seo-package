@@ -1,6 +1,6 @@
 # 更新日志
 
-## v1.6.1 — 2026-08-23
+## v1.4.4 — 2026-08-23
 
 **site_audit 新增 agent-readiness 检查。** 网站越来越多地被自主 agent 阅读，而不只是人和爬虫。`site_audit` 现在会标记 llms.txt 里决定 agent 能否理解你产品的两个缺口：
 
@@ -11,38 +11,36 @@
 
 背景：本次与 ZensInk Pro v2.4.0 同步发布——Pro 新增完整 Agent Readiness 评分（8 项检查、0-100 分、P0/P1/P2 修复方案）。该清单的参考实现让 zens.ink 在 [is-agentic.com](https://is-agentic.com/scan/zens.ink) 从 64 分升到 98 分。
 
-## v1.6.0 — 2026-08-15
+## v1.4.3 — 2026-08-15
 
 **kd 品牌词指纹 + 排名追踪。**
 
-- kd 品牌三重指纹：官方域名进 top3、域名家族占位 ≥2、平台生态密度
+- kd 品牌三重指纹：官方域名进 top3、域名家族占位 ≥2、平台生态密度——品牌词不再污染通用 KD
 - `kd_entry`：剔除官方页与平台固定位后的截流难度
 - KD → 引用域外链预算曲线（编辑型/目录型双轨）
 - `--markdown` 自包含报告模式
 - **新工具：rank_tracker** —— 基于 SQLite 的关键词排名历史
 - competitor_gap：更深的 sitemap 解析
 
-注：版本号从 1.4.2 直接跳到 1.6.0（与 kd 版本号对齐），中间没有 v1.5.x。
-
-## v1.4.2 — 2026-07
+## v1.4.2 — 2026-08-14
 
 - **MCP stdio server** —— `zens-ink mcp` 把所有 CLI 工具作为原生模型工具暴露给 MCP 客户端（DSH、Claude、Codex）
 - **新工具：serp_intent** —— Serper 驱动的 SERP 意图评估（20+ 页面类型、4 种意图、SERP 特征检测）；与关键词版 `search_intent` 交叉验证
 
-## v1.4.1 — 2026-07
+## v1.4.1 — 2026-08-06
 
 - **新工具：geo_fanout** —— Query Fan-out 内容规划
 - **新工具：reddit_blueocean** —— Google Autocomplete 挖 Reddit 蓝海
-- site_audit：+3 项检查（共 33 项）
+- site_audit：+3 项检查（staging 泄漏检测、sitemap 清单、schema 字段校验）
 
-## v1.3.0 — 2026-06
+## v1.3.0 — 2026-07-20
 
 - site_audit 扩到 30 项检查：图片、GEO、i18n、性能
 
-## v1.2.0 — 2026-06
+## v1.2.0 — 2026-07-17
 
 - 8 → 13 个工具：keyword_cluster、search_intent、kgr_auto、content_matrix、onpage_audit
 
-## v0.x — 2026-06
+## v1.0.0 — 2026-06-25
 
-- 早期版本：关键词发现、搜索量、KD、GSC 表现、竞品缺口
+- 首次公开发布：8 个免费 CLI 工具、零依赖、双语文档
