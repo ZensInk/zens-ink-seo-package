@@ -163,6 +163,8 @@ site_audit        →  make sure your pages are crawlable
 
 ## Documentation
 
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+
 - **Full docs & case studies**: [zens.ink/docs](https://zens.ink/docs)
 - **Pro package** (automated full-audit pipeline, HTML reports, GEO score): [zens.ink](https://zens.ink)
 

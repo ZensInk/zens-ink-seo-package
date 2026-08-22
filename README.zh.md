@@ -152,6 +152,8 @@ site_audit        →  确保你的页面能被正常抓取
 
 ## 文档
 
+- **更新日志**：[CHANGELOG.zh.md](CHANGELOG.zh.md) | [EN](CHANGELOG.md)
+
 - **完整文档与案例**：[zens.ink/docs](https://zens.ink/docs)
 - **Pro 增值包**（全流程自动审计、HTML 报告、GEO 评分）：[zens.ink](https://zens.ink)
 
