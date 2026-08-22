@@ -14,11 +14,11 @@ CLI tools for keyword research, competitor analysis, and technical audits. Zero 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-7c3aed?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
-[![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-059669?style=flat-square)](https://github.com/respectevery01/zens-ink-seo-package)
+[![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-059669?style=flat-square)](https://github.com/ZensInk/zens-ink-seo-package)
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-7c3aed?style=flat-square)](SKILL.md)
-[![GitHub stars](https://img.shields.io/github/stars/respectevery01/zens-ink-seo-package?style=flat-square&color=7c3aed)](https://github.com/respectevery01/zens-ink-seo-package)
-[![GitHub last commit](https://img.shields.io/github/last-commit/respectevery01/zens-ink-seo-package?style=flat-square&color=a8a29e)](https://github.com/respectevery01/zens-ink-seo-package)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-7c3aed?style=flat-square)](https://github.com/respectevery01/zens-ink-seo-package/pulls)
+[![GitHub stars](https://img.shields.io/github/stars/ZensInk/zens-ink-seo-package?style=flat-square&color=7c3aed)](https://github.com/ZensInk/zens-ink-seo-package)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ZensInk/zens-ink-seo-package?style=flat-square&color=a8a29e)](https://github.com/ZensInk/zens-ink-seo-package)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-7c3aed?style=flat-square)](https://github.com/ZensInk/zens-ink-seo-package/pulls)
 
 </div>
 
@@ -53,7 +53,7 @@ zens.ink wires together free public data sources — Google Autocomplete, Bing W
 **Option A — pip (recommended)**
 
 ```bash
-pip install git+https://github.com/respectevery01/zens-ink-seo-package.git
+pip install git+https://github.com/ZensInk/zens-ink-seo-package.git
 ```
 
 After install, the `zens-ink` command is available globally:
@@ -65,7 +65,7 @@ zens-ink --help
 **Option B — git clone**
 
 ```bash
-git clone https://github.com/respectevery01/zens-ink-seo-package.git
+git clone https://github.com/ZensInk/zens-ink-seo-package.git
 cd zens-ink-seo-package
 ```
 
@@ -110,7 +110,7 @@ ZensInk works as an AI agent skill — let your AI assistant run SEO tools for y
 
 ```bash
 # Install for ClawHub / OpenClaw / Hermes compatible agents
-npx skills add respectevery01/zens-ink-seo-package --skill zens-ink
+npx skills add ZensInk/zens-ink-seo-package --skill zens-ink
 ```
 
 Then just tell your AI: "find keywords for my tarot site" and it runs the tools for you. See [SKILL.md](SKILL.md) for details.

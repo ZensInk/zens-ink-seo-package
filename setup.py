@@ -7,7 +7,7 @@ setup(
     long_description=open("README.md").read() if __import__("os").path.exists("README.md") else "",
     long_description_content_type="text/markdown",
     author="Jask",
-    url="https://github.com/respectevery01/zens-ink-seo-package",
+    url="https://github.com/ZensInk/zens-ink-seo-package",
     license="MIT",
     packages=find_packages(),
     python_requires=">=3.10",
