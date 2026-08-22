@@ -62,7 +62,7 @@ All 13 tools can also be run as Python modules:
 python3 -m zens_ink.keyword_research "tarot meaning"
 ```
 
-## The 13 Tools
+## The 13 Tools (site_audit now includes agent-readiness checks)
 
 ### Keyword Discovery
 
@@ -161,7 +161,7 @@ zens-ink competitor_gap \
 
 #### 10. site_audit — Technical Site Audit (FREE, no API key)
 
-Scans built HTML for 7 common issues: orphan pages, missing trailing slashes, broken internal links, missing canonical tags, missing meta descriptions, missing H1 tags, multiple H1 tags.
+Scans built HTML for 30+ issues: orphan pages, broken internal links, canonical/meta/H1 problems, GEO checks (llms.txt, FAQ schema, BLUF), plus agent-readiness checks — llms.txt must carry a when-to-use section and a how-to-call line so AI agents know which jobs your product fits.
 
 ```bash
 zens-ink site_audit --dist dist --sitemap dist/sitemap.xml

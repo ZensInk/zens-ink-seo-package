@@ -27,6 +27,7 @@ Checks:
 
 GEO/AI Visibility:
  22. llms.txt: missing or thin (AI discovery infrastructure)
+ 22b. Agent guidance: llms.txt missing when-to-use / how-to-call section
  23. llms-full.txt: missing comprehensive version
  24. Schema types: blog articles missing FAQPage/HowTo schema
  25. Content signals: robots.txt missing ai-input/search declarations
@@ -786,6 +787,37 @@ def check_favicon(dist_dir: Path) -> list[dict]:
 
 # ── GEO Checks ───────────────────────────────────────────────────────────
 
+def check_llms_agent_section(dist_dir: Path) -> list[dict]:
+    """Check llms.txt for agent-facing when-to-use guidance (agent readiness).
+
+    Agents reach for a product only when llms.txt tells them which jobs it fits.
+    A link list without a when-to-use section reads as marketing, not guidance.
+    """
+    issues = []
+    llms = dist_dir / "llms.txt"
+    if not llms.exists():
+        return issues  # missing file already flagged by check_llms_txt
+    try:
+        content = llms.read_text(errors="ignore")
+    except Exception:
+        return issues
+    if not re.search(r"when to use", content, re.IGNORECASE):
+        issues.append({
+            "type": "missing_agent_instructions",
+            "severity": "warning",
+            "path": "llms.txt",
+            "detail": "llms.txt lacks a 'When to use' section — agents can't tell which jobs this site is for",
+        })
+    if not re.search(r"how to call|how to use|pip install|npm install|mcp", content, re.IGNORECASE):
+        issues.append({
+            "type": "missing_agent_call_guide",
+            "severity": "info",
+            "path": "llms.txt",
+            "detail": "llms.txt lacks a how-to-call line (install command / endpoint / MCP entry point)",
+        })
+    return issues
+
+
 def check_llms_txt(dist_dir: Path) -> list[dict]:
     """Check for llms.txt files (GEO infrastructure for AI discoverability)."""
     issues = []
@@ -1380,6 +1412,8 @@ def format_text(
         "missing_llms_txt": "MISSING llms.txt (GEO)",
         "thin_llms_txt": "THIN llms.txt (GEO)",
         "missing_llms_full": "MISSING llms-full.txt (GEO)",
+        "missing_agent_instructions": "MISSING AGENT WHEN-TO-USE SECTION (agent readiness)",
+        "missing_agent_call_guide": "MISSING AGENT HOW-TO-CALL LINE (agent readiness)",
         "missing_faq_schema": "MISSING FAQ/HOWTO SCHEMA (GEO)",
         "missing_ai_input_signal": "MISSING AI-INPUT SIGNAL (GEO)",
         "missing_search_signal": "MISSING SEARCH SIGNAL (GEO)",
@@ -1516,6 +1550,7 @@ def run(
     all_issues.extend(check_favicon(dist_dir))
     # GEO checks
     all_issues.extend(check_llms_txt(dist_dir))
+    all_issues.extend(check_llms_agent_section(dist_dir))
     all_issues.extend(check_schema_types(dist_dir))
     all_issues.extend(check_commercial_schema(dist_dir))
     all_issues.extend(check_content_signals(dist_dir))
