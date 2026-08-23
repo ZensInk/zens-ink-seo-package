@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.4.5 — 2026-08-23
+
+**New tool: domain_rating — real Ahrefs DR, free.** Off-page authority used to be the known gap: kd.py works around it with curated authority-domain proxies. Ahrefs now exposes a free public Domain Rating endpoint, so the gap closes at zero cost:
+
+- `domain_rating` queries `v3/public/domain-rating-free` for any domain or URL (0-100 log scale)
+- Accepts domains as args, from a file, or piped via stdin — built for batch SERP-competitor checks
+- Local cache (`dr-cache.json`, gitignored) so repeated runs never burn rate limit; `--no-cache` to bypass
+- CSV / JSON export, URL auto-normalization (`https://www.example.com/x` -> `example.com`)
+- Also registered in the MCP server tool list
+- Attribution "Domain Rating by Ahrefs" included in every output per the DR License
+- Requires a free AHREFS_API_KEY (generate at app.ahrefs.com/account/api-keys)
+
 ## v1.4.4 — 2026-08-23
 
 **Agent-readiness checks in site_audit.** The web is increasingly read by autonomous agents, not just humans and crawlers. `site_audit` now flags the two llms.txt gaps that decide whether agents understand your product:

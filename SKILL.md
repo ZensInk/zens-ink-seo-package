@@ -62,7 +62,7 @@ All 13 tools can also be run as Python modules:
 python3 -m zens_ink.keyword_research "tarot meaning"
 ```
 
-## The 13 Tools (site_audit now includes agent-readiness checks)
+## The 14 Tools (site_audit now includes agent-readiness checks)
 
 ### Keyword Discovery
 
@@ -197,6 +197,25 @@ zens-ink search_performance --start 2025-01-01 --end 2025-06-30
 zens-ink search_performance --query tarot
 ```
 
+### Off-Page Authority
+
+#### 14. domain_rating — Real Ahrefs DR (FREE public API, needs AHREFS_API_KEY)
+
+Ahrefs exposes a free Domain Rating endpoint. Check your own site vs the
+domains currently ranking on your target SERPs — closes the off-page authority
+gap that kd.py's curated proxies could only approximate.
+
+```bash
+zens-ink domain_rating example.com
+zens-ink domain_rating a.com b.com c.com --json
+zens-ink domain_rating --file serp-domains.txt --csv dr.csv
+cat serp-domains.txt | zens-ink domain_rating   # stdin pipe
+```
+
+Results are cached locally (`dr-cache.json`) so batch reruns never re-query.
+Attribution "Domain Rating by Ahrefs" is required by the DR License and kept
+in all outputs. Free key: app.ahrefs.com → Account settings → API keys.
+
 ## Typical Workflow
 
 ```
@@ -210,6 +229,7 @@ kd / kgr_auto     →  can I win? Is it worth it?
         ↓
 keyword_volume    →  how many people search?
         ↓
+domain_rating     →  how strong are the ranking domains?
 content_matrix    →  what to write first?
         ↓
 competitor_gap    →  what am I missing?
@@ -229,6 +249,7 @@ Create a `.env` file in your project root:
 BING_API_KEY=xxx      # Free from bing.com/webmasters
 BRAVE_API_KEY=xxx     # Free 2000/mo from brave.com/search/api
 SERPER_API_KEY=xxx    # Free 2500/mo from serper.dev
+AHREFS_API_KEY=xxx    # Free DR API from app.ahrefs.com
 ```
 
 Google Search Console: run `zens-ink setup_gsc` and follow the OAuth flow.

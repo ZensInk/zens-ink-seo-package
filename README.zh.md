@@ -34,6 +34,7 @@
 | `kgr_auto` | KGR 机会评分（竞争度 vs 搜索量） | 可选 Bing key |
 | `keyword_volume` | 通过 Bing 站长 API 获取真实搜索量 | 免费 Bing key |
 | `brave_volume` | 通过 Brave 搜索信号交叉验证搜索需求 | 免费 Brave key |
+| `domain_rating` | Ahrefs 真实 Domain Rating（0-100），走免费公共 API | 免费 Ahrefs key |
 | `search_intent` | 搜索意图分类（信息/商业/交易/导航） | 无 |
 | `content_matrix` | 优先级内容机会矩阵 | 无 |
 | `competitor_gap` | 多竞品 sitemap 对比，找出内容缺口 | 无 |
@@ -46,7 +47,7 @@
 
 Ahrefs 每月 $200，SEMrush 每月 $130。对独立开发者来说，只是想做关键词研究，太贵了。
 
-zens.ink 把免费公开数据源 —— Google 自动补全、Bing 站长工具、Google Search Console、Brave 搜索 —— 串在一起，零 Python 依赖。
+zens.ink 把免费公开数据源 —— Google 自动补全、Bing 站长工具、Google Search Console、Brave 搜索、Ahrefs Domain Rating —— 串在一起，零 Python 依赖。
 
 ## 安装
 

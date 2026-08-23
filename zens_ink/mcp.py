@@ -102,6 +102,26 @@ TOOLS = [
         "timeout": 120,
     },
     {
+        "name": "domain_rating",
+        "module": "zens_ink.domain_rating",
+        "description": (
+            "Real Ahrefs Domain Rating (0-100) via the free public API. "
+            "Closes the off-page authority gap: check your site vs SERP competitors. "
+            "Requires AHREFS_API_KEY in .env (free key from app.ahrefs.com). "
+            "Data: Domain Rating by Ahrefs."
+        ),
+        "positional": [
+            {"name": "domains", "type": "array", "items": "string", "multiple": True, "description": "Domain(s) or full URL(s)"},
+        ],
+        "flags": [
+            {"name": "file", "flag": "--file", "type": "string", "description": "File with one domain per line (alternative to domains)"},
+            {"name": "csv", "flag": "--csv", "type": "string", "description": "Export results to CSV"},
+            {"name": "json", "flag": "--json", "type": "boolean", "description": "JSON output"},
+            {"name": "no_cache", "flag": "--no-cache", "type": "boolean", "description": "Bypass local cache"},
+        ],
+        "timeout": 180,
+    },
+    {
         "name": "keyword_cluster",
         "module": "zens_ink.keyword_cluster",
         "description": (

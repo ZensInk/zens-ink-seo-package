@@ -34,6 +34,7 @@ Thirteen CLI tools that cover the full SEO workflow — from discovering what pe
 | `kgr_auto` | KGR opportunity scoring (competition vs volume) | Optional Bing key |
 | `keyword_volume` | Real search volume via Bing Webmaster API | Free Bing key |
 | `brave_volume` | Cross-check search demand via Brave SERP signals | Free Brave key |
+| `domain_rating` | Real Ahrefs Domain Rating (0-100) via the free public API | Free Ahrefs key |
 | `search_intent` | Classify keywords by search intent (info/commercial/transactional) | None |
 | `content_matrix` | Prioritized content opportunity matrix | None |
 | `competitor_gap` | Compare multiple competitor sitemaps, find content gaps | None |
@@ -46,7 +47,7 @@ Thirteen CLI tools that cover the full SEO workflow — from discovering what pe
 
 Ahrefs costs $200/month. SEMrush costs $130/month. For indie builders who just need to find keywords worth writing about, that's overkill.
 
-zens.ink wires together free public data sources — Google Autocomplete, Bing Webmaster Tools, Google Search Console, Brave Search — with zero Python dependencies.
+zens.ink wires together free public data sources — Google Autocomplete, Bing Webmaster Tools, Google Search Console, Brave Search, Ahrefs Domain Rating — with zero Python dependencies.
 
 ## Install
 

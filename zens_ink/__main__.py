@@ -13,10 +13,14 @@ TOOLS = {
     # Volume
     "keyword_volume":     "Check real search volume via Bing API",
     "brave_volume":       "Estimate search demand via Brave SERP signals",
+    # Off-page authority
+    "domain_rating":      "Real Ahrefs Domain Rating via free public API",
     # Intent & Strategy
     "search_intent":      "Classify keywords by search intent (info/commercial/transactional/navigational)",
     "serp_intent":        "SERP-based intent analysis (reverse-engineer Google's actual ranking behavior)",
     "content_matrix":     "Generate prioritized content opportunity matrix",
+    "geo_fanout":         "Query Fan-out content planning (GEO/AI search)",
+    "reddit_blueocean":   "Reddit blue-ocean keyword mining via Autocomplete",
     # Competitive
     "competitor_gap":     "Analyze competitor content via sitemaps",
     # Technical Audit
@@ -25,19 +29,22 @@ TOOLS = {
     # GSC
     "setup_gsc":          "One-time OAuth setup for Search Console",
     "search_performance": "Your site's Google search data (GSC)",
+    # Tracking
+    "rank_tracker":       "SQLite-backed keyword position history",
     # MCP server
     "mcp":               "Run as MCP stdio server (DSH / Claude / Codex integration)",
 }
 
 
 def show_help():
-    print(f"\nzens.ink CLI v1.2.0 — Free SEO toolkit for indie builders\n")
+    from zens_ink import __version__
+    print(f"\nzens.ink CLI v{__version__} — Free SEO toolkit for indie builders\n")
     print("Usage: zens-ink <tool> [options]")
     print("   or: python3 -m zens_ink.<tool> [options]\n")
     print("Tools:")
     for name, desc in TOOLS.items():
         print(f"  {name:25s}  {desc}")
-    print(f"\n  16 tools — all pure stdlib, zero pip dependencies")
+    print(f"\n  {len(TOOLS)} tools — all pure stdlib, zero pip dependencies")
     print(f"\nDocs: https://github.com/ZensInk/zens-ink-seo-package\n")
 
 

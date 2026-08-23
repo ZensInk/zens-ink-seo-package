@@ -31,6 +31,10 @@ SERPER_API_KEY = os.environ.get("SERPER_API_KEY", "")
 # Brave Search API (volume estimation)
 BRAVE_API_KEY = os.environ.get("BRAVE_API_KEY", "")
 
+# Ahrefs free Domain Rating API (v3/public/domain-rating-free)
+# Free key: ahrefs.com -> Account settings -> API keys
+AHREFS_API_KEY = os.environ.get("AHREFS_API_KEY", "")
+
 # Google Search Console
 GSC_SITE_URL = os.environ.get("GSC_SITE_URL", "")  # e.g. sc-domain:example.com
 ADC_PATH = os.environ.get(

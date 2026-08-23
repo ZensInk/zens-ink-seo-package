@@ -1,5 +1,17 @@
 # 更新日志
 
+## v1.4.5 — 2026-08-23
+
+**新工具：domain_rating —— 免费 Ahrefs 真实 DR。** Off-page 权重一直是已知空白：kd.py 此前只能用人工整理的权威域名表做代理。Ahrefs 开放了免费公共 Domain Rating 端点，这个空白零成本补上：
+
+- `domain_rating` 查询 `v3/public/domain-rating-free`，任意域名或 URL 返回 0-100 DR
+- 支持命令行传参、`--file` 文件、stdin 管道三种输入——专为批量查 SERP 竞品设计
+- 本地缓存（`dr-cache.json`，已 gitignore），重复查询不打接口；`--no-cache` 可跳过
+- CSV / JSON 导出；URL 自动归一化（`https://www.example.com/x` → `example.com`）
+- 已同步注册进 MCP server 工具列表
+- 按 DR License 要求，所有输出附带 "Domain Rating by Ahrefs" 署名
+- 需要免费 AHREFS_API_KEY（app.ahrefs.com/account/api-keys 生成）
+
 ## v1.4.4 — 2026-08-23
 
 **site_audit 新增 agent-readiness 检查。** 网站越来越多地被自主 agent 阅读，而不只是人和爬虫。`site_audit` 现在会标记 llms.txt 里决定 agent 能否理解你产品的两个缺口：
