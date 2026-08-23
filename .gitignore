@@ -16,3 +16,5 @@ brave-volume-*.json
 build/
 zens_ink.egg-info/
 *.egg-info/
+
+dist/
