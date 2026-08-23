@@ -54,7 +54,7 @@ zens.ink wires together free public data sources — Google Autocomplete, Bing W
 **Option A — pip (recommended)**
 
 ```bash
-pip install git+https://github.com/ZensInk/zens-ink-seo-package.git
+pip install zens-ink
 ```
 
 After install, the `zens-ink` command is available globally:

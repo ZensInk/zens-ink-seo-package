@@ -54,7 +54,7 @@ zens.ink 把免费公开数据源 —— Google 自动补全、Bing 站长工具
 **方式一 — pip（推荐）**
 
 ```bash
-pip install git+https://github.com/ZensInk/zens-ink-seo-package.git
+pip install zens-ink
 ```
 
 安装后 `zens-ink` 命令全局可用：

@@ -49,7 +49,7 @@ triggers:
 ## Setup (one-time)
 
 ```bash
-pip install git+https://github.com/ZensInk/zens-ink-seo-package.git
+pip install zens-ink
 ```
 
 After install, `zens-ink` command is available globally. Verify:
