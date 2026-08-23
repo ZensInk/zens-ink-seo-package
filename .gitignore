@@ -18,3 +18,5 @@ zens_ink.egg-info/
 *.egg-info/
 
 dist/
+gsc_report.py
+package.json.bak
