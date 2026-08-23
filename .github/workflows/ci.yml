@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build + check + smoke test
+        run: |
+          pip install build twine
+          python -m build
+          twine check dist/*
+          pip install dist/*.whl
+          zens-ink --help >/dev/null && echo "CLI OK"
