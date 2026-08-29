@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.4.7 — 2026-08-29
+
+**Two new tools: content_qc + llms_gen — the publish-side GEO loop closes.**
+Scoring live pages (site_audit, geo scoring) tells you what went wrong after
+the fact. These two tools move the check to before you ship, and generate the
+AI discovery layer automatically.
+
+- **New tool: content_qc** — pre-publish gate for AI-citable content. Grades
+  drafts on 14 weighted checks: BLUF up front, fact density per 1k words,
+  vague-word ceiling, outbound sources, FAQ block, question-format headings,
+  title/description length, alt coverage, date signal. Markdown + HTML,
+  directory mode, `--min-score` gate with CI exit code. Cross-validated
+  against site_audit findings on a live site.
+- **New tool: llms_gen** — generates `llms.txt` (curated) + `llms-full.txt`
+  (full catalog, grouped by section) from a static build directory or a
+  remote sitemap. Auto-skips admin/api/noindex routes. Zero deps.
+- Version bump 1.4.6 → 1.4.7.
+
 ## v1.4.5 — 2026-08-23
 
 **New tool: domain_rating — real Ahrefs DR, free.** Off-page authority used to be the known gap: kd.py works around it with curated authority-domain proxies. Ahrefs now exposes a free public Domain Rating endpoint, so the gap closes at zero cost:

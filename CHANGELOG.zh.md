@@ -1,5 +1,19 @@
 # 更新日志
 
+## v1.4.7 — 2026-08-29
+
+**两个新工具：content_qc + llms_gen —— 发布侧 GEO 闭环补齐。**
+给线上页面打分（site_audit、geo score）是事后诊断。这两个工具把检查挪到发布前，
+并自动生成 AI 发现层。
+
+- **新工具 content_qc** —— AI 可引用内容的发布前门禁。14 项加权检查：BLUF 前置、
+  事实密度（每千词）、模糊词上限、外链来源、FAQ 块、问题式标题、标题/描述长度、
+  alt 覆盖、日期信号。支持 Markdown + HTML、目录批量、`--min-score` 门禁 + CI 退出码。
+  已在真实站点上与 site_audit 交叉验证。
+- **新工具 llms_gen** —— 从静态构建目录或远程 sitemap 生成 `llms.txt`（精简版）+
+  `llms-full.txt`（全量目录，按 section 分组）。自动跳过 admin/api/noindex 路由。零依赖。
+- 版本 1.4.6 → 1.4.7。
+
 ## v1.4.5 — 2026-08-23
 
 **新工具：domain_rating —— 免费 Ahrefs 真实 DR。** Off-page 权重一直是已知空白：kd.py 此前只能用人工整理的权威域名表做代理。Ahrefs 开放了免费公共 Domain Rating 端点，这个空白零成本补上：

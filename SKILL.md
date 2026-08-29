@@ -62,7 +62,7 @@ All 13 tools can also be run as Python modules:
 python3 -m zens_ink.keyword_research "tarot meaning"
 ```
 
-## The 14 Tools (site_audit now includes agent-readiness checks)
+## The 16 Tools (site_audit now includes agent-readiness checks)
 
 ### Keyword Discovery
 
@@ -215,6 +215,42 @@ cat serp-domains.txt | zens-ink domain_rating   # stdin pipe
 Results are cached locally (`dr-cache.json`) so batch reruns never re-query.
 Attribution "Domain Rating by Ahrefs" is required by the DR License and kept
 in all outputs. Free key: app.ahrefs.com → Account settings → API keys.
+
+#### 15. content_qc — Pre-Publish Content Gate (FREE, no API key)
+
+Grades a DRAFT before it ships — the publishing-side companion to
+site_audit/geo scoring. Catches BLUF absence, vague-claim density,
+missing FAQ, thin sourcing, and title/description length issues at the
+desk, not after Google re-crawls. Works on Markdown (with frontmatter)
+and HTML; directory mode averages a whole drafts folder. Exit code 1
+below the gate score, so it drops straight into CI or a pre-commit hook.
+
+```bash
+zens-ink content_qc draft.md
+zens-ink content_qc drafts/ --min-score 75
+zens-ink content_qc draft.md --format json
+```
+
+Checks: BLUF up front (w=15), fact density per 1k words (15),
+vague-word ceiling (10), outbound sources (10), H2 structure (10),
+FAQ block (10), internal links (5), question-format headings (5),
+lists/tables (5), title and description length (5+5), alt coverage (3),
+date signal (2).
+
+#### 16. llms_gen — Generate llms.txt + llms-full.txt (FREE, no API key)
+
+Builds the two-tier AI discovery catalog from your static build or a
+remote sitemap: curated `llms.txt` (core pages) plus comprehensive
+`llms-full.txt` (every page with title/description, grouped by section).
+Skips admin/api/noindex routes automatically. Works with Astro/Next/Hugo
+dist directories or any sitemap.xml URL.
+
+```bash
+zens-ink llms_gen --dist dist --site https://example.com
+zens-ink llms_gen --sitemap https://example.com/sitemap.xml --site https://example.com
+zens-ink llms_gen --dist dist --site https://example.com --name "MyBrand" --tagline "What you build"
+```
+
 
 ## Typical Workflow
 
