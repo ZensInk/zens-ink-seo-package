@@ -14,6 +14,14 @@
   `llms-full.txt`（全量目录，按 section 分组）。自动跳过 admin/api/noindex 路由。零依赖。
 - 版本 1.4.6 → 1.4.7。
 
+## v1.4.6 — 2026-08-23
+
+**PyPI 发布基建。** zens-ink 进入 pip 时代，后续发版由 git tag 自动完成。
+
+- 上架 PyPI：`pip install zens-ink`（替代 git+https 安装命令）
+- GitHub Actions 自动发版：push `v*` tag 触发 CI 构建 + twine 上传（PYPI_API_TOKEN 为仓库 secret）
+- TOOLS_COUNT 修正：16 -> 19（工具注册计数落后于实际工具集）
+
 ## v1.4.5 — 2026-08-23
 
 **新工具：domain_rating —— 免费 Ahrefs 真实 DR。** Off-page 权重一直是已知空白：kd.py 此前只能用人工整理的权威域名表做代理。Ahrefs 开放了免费公共 Domain Rating 端点，这个空白零成本补上：

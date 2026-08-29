@@ -18,6 +18,15 @@ AI discovery layer automatically.
   remote sitemap. Auto-skips admin/api/noindex routes. Zero deps.
 - Version bump 1.4.6 → 1.4.7.
 
+## v1.4.6 — 2026-08-23
+
+**PyPI release infrastructure.** zens-ink is now installable via pip, and
+future releases publish themselves from a git tag.
+
+- Published to PyPI: `pip install zens-ink` (replaces the git+https install command)
+- GitHub Actions auto-publish: push a `v*` tag and CI builds + uploads to PyPI (PYPI_API_TOKEN as repo secret)
+- TOOLS_COUNT fix: 16 -> 19 (module registry count had drifted behind the actual tool set)
+
 ## v1.4.5 — 2026-08-23
 
 **New tool: domain_rating — real Ahrefs DR, free.** Off-page authority used to be the known gap: kd.py works around it with curated authority-domain proxies. Ahrefs now exposes a free public Domain Rating endpoint, so the gap closes at zero cost:
