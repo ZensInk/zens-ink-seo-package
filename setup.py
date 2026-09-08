@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="zens-ink",
-    version="1.4.7",
+    version="1.4.8",
     description="Free SEO toolkit for indie builders — zero dependencies",
     long_description=open("README.md").read() if __import__("os").path.exists("README.md") else "",
     long_description_content_type="text/markdown",

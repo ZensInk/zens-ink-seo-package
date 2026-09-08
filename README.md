@@ -24,7 +24,7 @@ CLI tools for keyword research, competitor analysis, and technical audits. Zero 
 
 ---
 
-Thirteen CLI tools that cover the full SEO workflow — from discovering what people search, to clustering keywords by topic, to classifying search intent, to auditing your own site. No paid APIs. No Ahrefs. No subscriptions. Just free data sources wired together with Python.
+Twenty CLI tools that cover the full SEO workflow — from discovering what people search, to clustering keywords by topic, to classifying search intent, to auditing your own site. No paid APIs. No Ahrefs. No subscriptions. Just free data sources wired together with Python.
 
 | Tool | What it does | API needed |
 |------|-------------|-----------|
@@ -39,7 +39,14 @@ Thirteen CLI tools that cover the full SEO workflow — from discovering what pe
 | `content_matrix` | Prioritized content opportunity matrix | None |
 | `competitor_gap` | Compare multiple competitor sitemaps, find content gaps | None |
 | `site_audit` | Technical SEO + GEO audit: 30 checks covering links, meta, images, structured data, AI visibility | None |
+| `serp_intent` | SERP-based intent analysis — reverse-engineer Google's actual ranking behavior | Free Serper key |
 | `onpage_audit` | On-page quality scoring (7 dimensions, 0-100 per page) | None |
+| `geo_fanout` | Query Fan-out content planning (GEO/AI search) | None |
+| `reddit_blueocean` | Reddit blue-ocean keyword mining via Autocomplete | None |
+| `content_qc` | Pre-publish gate for AI-citable content (14 weighted checks) | None |
+| `llms_gen` | Generate `llms.txt` + `llms-full.txt` from a build dir or sitemap | None |
+| `ai_crawler_audit` | robots.txt AI-crawler policy + llms.txt layer audit, AI-readiness score | None |
+| `rank_tracker` | SQLite-backed keyword position history | Free Serper key |
 | `setup_gsc` | One-time OAuth setup for Google Search Console | — |
 | `search_performance` | Your site's real Google ranking data (GSC) | Free GSC OAuth |
 

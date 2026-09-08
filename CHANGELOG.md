@@ -1,3 +1,20 @@
+## v1.4.8 — 2026-09-08
+
+**New tool: ai_crawler_audit — who can actually read your content.**
+site_audit checks pages; this checks the gatekeepers. It audits robots.txt
+against 17 AI crawlers (training vs AI search, per vendor), reads Content
+Signals, verifies the llms.txt / llms-full.txt layer, and scores AI
+readiness out of 100 with plain-language notes. Site-wide blocks are
+distinguished from subpath-only blocks — `Disallow: /admin` is not
+`Disallow: /`. Zero deps, no API key. Pairs with llms_gen (audit what you
+have, generate what's missing).
+
+- **New tool: ai_crawler_audit** — robots.txt AI-crawler policy + llms.txt
+  discovery-layer audit with AI-readiness score. Markdown + JSON output.
+- Verified on live sites across the full policy spectrum: full allow,
+  subpath-only disallow, site-wide blocks, and content-signal strategies.
+- Version bump 1.4.7 → 1.4.8. TOOLS_COUNT 19 → 20.
+
 # Changelog
 
 ## v1.4.7 — 2026-08-29

@@ -39,7 +39,14 @@
 | `content_matrix` | 优先级内容机会矩阵 | 无 |
 | `competitor_gap` | 多竞品 sitemap 对比，找出内容缺口 | 无 |
 | `site_audit` | 技术 SEO + GEO 审计：30 项检查，覆盖链接、元数据、图片、结构化数据、AI 可见性 | 无 |
+| `serp_intent` | 基于 SERP 的意图分析——逆向工程 Google 真实排名行为 | 免费 Serper key |
 | `onpage_audit` | 页面质量评分（7 维度，每页 0-100 分） | 无 |
+| `geo_fanout` | Query Fan-out 内容规划（GEO/AI 搜索） | 无 |
+| `reddit_blueocean` | Reddit 蓝海关键词挖掘（自动补全驱动） | 无 |
+| `content_qc` | AI 可引用内容发布前质检（14 项加权检查） | 无 |
+| `llms_gen` | 从构建目录或 sitemap 生成 `llms.txt` + `llms-full.txt` | 无 |
+| `ai_crawler_audit` | robots.txt AI 爬虫策略 + llms.txt 层审计，AI 可读性评分 | 无 |
+| `rank_tracker` | SQLite 关键词排名历史追踪 | 免费 Serper key |
 | `setup_gsc` | Google Search Console OAuth 一次性配置 | — |
 | `search_performance` | 你在 Google 上的真实排名数据（GSC） | 免费 GSC OAuth |
 

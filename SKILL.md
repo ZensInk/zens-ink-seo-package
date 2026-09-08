@@ -252,6 +252,21 @@ zens-ink llms_gen --dist dist --site https://example.com --name "MyBrand" --tagl
 ```
 
 
+#### 17. ai_crawler_audit — robots.txt AI-Crawler Policy + llms.txt Audit (FREE, no API key)
+
+Answers "who can actually read my content" at the crawler layer: 17 AI
+crawlers (training vs AI search, per vendor), Content Signals, sitemap
+declaration, and the llms.txt / llms-full.txt discovery layer, plus an
+AI-readiness score and plain-language notes. Distinguishes site-wide
+blocks from subpath-only blocks (Disallow /admin is not Disallow /).
+Pairs with llms_gen: audit what you have, generate what's missing.
+
+```bash
+zens-ink ai_crawler_audit https://example.com
+zens-ink ai_crawler_audit https://example.com --markdown report.md --json report.json
+```
+
+
 ## Typical Workflow
 
 ```

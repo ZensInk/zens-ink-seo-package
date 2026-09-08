@@ -1,3 +1,18 @@
+## v1.4.8 — 2026-09-08
+
+**新工具：ai_crawler_audit — 查清谁真的能读你的内容。**
+site_audit 查页面，这个查守门人。对 robots.txt 里的 17 个 AI 爬虫
+（训练类 vs AI 搜索类，按厂商分组）逐个判定可达性，读取 Content Signals
+内容信号，验证 llms.txt / llms-full.txt 发现层，输出百分制 AI 可读性
+评分和人话建议。全站封禁与子路径封禁严格区分——`Disallow: /admin` 不等于
+`Disallow: /`。零依赖、免 API key。与 llms_gen 配对使用：先审计现有策略，
+缺什么生成什么。
+
+- **新工具 ai_crawler_audit**：robots.txt AI 爬虫策略 + llms.txt 发现层审计，
+  带 AI 可读性评分，支持 Markdown / JSON 输出
+- 已在真实站点上验证全谱系策略：全放行、子路径封禁、全站封禁、内容信号策略
+- 版本号 1.4.7 → 1.4.8，工具数 19 → 20
+
 # 更新日志
 
 ## v1.4.7 — 2026-08-29

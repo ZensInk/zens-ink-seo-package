@@ -26,6 +26,7 @@ TOOLS = {
     # Technical Audit
     "site_audit":         "Technical SEO audit (orphan pages, broken links, missing tags)",
     "onpage_audit":       "On-page quality scoring (7 dimensions, 0-100 per page)",
+    "ai_crawler_audit":   "robots.txt AI-crawler policy + llms.txt layer audit (AI-readiness score)",
     # GSC
     "setup_gsc":          "One-time OAuth setup for Search Console",
     "search_performance": "Your site's Google search data (GSC)",
