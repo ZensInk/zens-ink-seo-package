@@ -1,3 +1,24 @@
+# Changelog
+
+## v1.4.9 — 2026-09-30
+
+**Repo agent layer — make the repo itself AI-readable.**
+Gitingest and GitDiagram (15k+ stars combined) turned "how AI tools digest
+your repository" into a real surface: agents now meet your project through
+these digests before they meet your code. This release ships that layer for
+zens-ink itself, dogfooding the new Pro repo_readiness audit.
+
+- **llms.txt + llms-full.txt** in the repo root — agent-readable digest:
+  20-tool inventory, MCP / skill entry points, install commands, links.
+- **ARCHITECTURE.md** — module layering and data flow in one page, so
+  generated digests describe structure instead of guessing it.
+- **Smoke tests** (`tests/test_smoke.py`) — imports and CLI surface keep
+  working as the toolkit grows.
+- **FUNDING.yml** — points at zens.ink pricing.
+- Verified with the new Pro v2.6.0 `repo_readiness` audit: 76/C → 91/A.
+  Compare: gitdiagram 63/D, psf/requests 59/F — the classic repos most in
+  need of the same layer.
+
 ## v1.4.8 — 2026-09-08
 
 **New tool: ai_crawler_audit — who can actually read your content.**
@@ -14,8 +35,6 @@ have, generate what's missing).
 - Verified on live sites across the full policy spectrum: full allow,
   subpath-only disallow, site-wide blocks, and content-signal strategies.
 - Version bump 1.4.7 → 1.4.8. TOOLS_COUNT 19 → 20.
-
-# Changelog
 
 ## v1.4.7 — 2026-08-29
 
