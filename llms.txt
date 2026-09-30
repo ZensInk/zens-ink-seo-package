@@ -1,0 +1,62 @@
+# ZensInk
+
+> Zero-dependency Python CLI toolkit covering the full SEO workflow — keyword research, difficulty, intent, site audits, GEO/AI-readiness — wired to free data sources. Also runs as an agent skill and an MCP server.
+
+ZensInk is for indie builders who need real SEO data without Ahrefs or subscriptions. Twenty-plus CLI tools share one config and one `.env`; every tool runs standalone as `zens-ink <tool>` or `python3 -m zens_ink.<tool>`. Pure Python stdlib, no third-party dependencies.
+
+## Install
+
+- [PyPI](https://pypi.org/project/zens-ink/): `pip install zens-ink` — global `zens-ink` command
+- [GitHub](https://github.com/ZensInk/zens-ink-seo-package): `git clone https://github.com/ZensInk/zens-ink-seo-package.git`
+
+## Keyword Discovery
+
+- [keyword_research](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/keyword_research.py): long-tail keywords via Google Autocomplete, `--expand` for a-z sweep. No API key.
+- [keyword_cluster](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/keyword_cluster.py): group keywords into semantic topic clusters. No API key.
+- [keyword_volume](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/keyword_volume.py): real search volume via Bing Webmaster API. Free Bing key.
+- [brave_volume](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/brave_volume.py): cross-check search demand via Brave SERP signals. Free Brave key.
+- [reddit_blueocean](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/reddit_blueocean.py): blue-ocean keyword mining from Reddit demand. No API key.
+- [kgr_auto](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/kgr_auto.py): KGR opportunity scoring (allintitle vs volume). Optional Bing key.
+
+## Competition & Difficulty
+
+- [kd](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/kd.py): keyword difficulty from SERP structure analysis — homepage ratio, page-type weights, brand-lock fingerprints. Free Serper key. `--zh` for Chinese SERPs.
+- [domain_rating](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/domain_rating.py): real Ahrefs Domain Rating (0-100) via the free public API. Free Ahrefs key.
+- [competitor_gap](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/competitor_gap.py): diff multiple competitor sitemaps, find content gaps. No API key.
+- [serp_intent](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/serp_intent.py): SERP-based intent analysis — reverse-engineer Google's actual ranking behavior. Free Serper key.
+- [search_intent](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/search_intent.py): classify keywords info/commercial/transactional/navigational. No API key.
+
+## Content Planning
+
+- [content_matrix](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/content_matrix.py): prioritized content opportunity matrix. No API key.
+- [geo_fanout](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/geo_fanout.py): Query Fan-out content planning for AI search (GEO). No API key.
+
+## Audits
+
+- [site_audit](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/site_audit.py): 33-check technical SEO + GEO audit (links, meta, images, structured data, i18n, staging leaks). No API key.
+- [onpage_audit](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/onpage_audit.py): on-page quality scoring, 7 dimensions, 0-100 per page. No API key.
+- [ai_crawler_audit](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/ai_crawler_audit.py): robots.txt AI-crawler policy + llms.txt layer audit, AI-readiness score. No API key.
+- [content_qc](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/content_qc.py): pre-publish gate for AI-citable content, 14 weighted checks. No API key.
+- [llms_gen](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/llms_gen.py): generate llms.txt + llms-full.txt from a build dir or sitemap. No API key.
+
+## Your Own Data
+
+- [rank_tracker](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/rank_tracker.py): SQLite-backed keyword position history. Free Serper key.
+- [search_performance](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/search_performance.py): your site's real Google ranking data via GSC. Free GSC OAuth.
+- [setup_gsc](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/setup_gsc.py): one-time OAuth setup for Google Search Console.
+
+## Agent Interfaces
+
+- [MCP server](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/mcp.py): `python3 -m zens_ink.mcp` — stdio server exposing every tool as a native model tool. Detects the Pro package (`zens_ink_pro`) if installed alongside.
+- [Agent skill](https://github.com/ZensInk/zens-ink-seo-package/blob/main/SKILL.md): `npx skills add ZensInk/zens-ink-seo-package --skill zens-ink` for ClawHub / OpenClaw / Hermes-compatible agents.
+
+## Pro Package
+
+- [zens.ink](https://zens.ink): Pro Workflow Engine — winability score, content radar, competitor radar, GEO score (5-layer 16-dimension), agent readiness audit, full 12-step pipeline. One-time purchase.
+
+## Reference
+
+- [README](https://github.com/ZensInk/zens-ink-seo-package/blob/main/README.md): full tool table, workflow diagram, config guide
+- [SKILL.md](https://github.com/ZensInk/zens-ink-seo-package/blob/main/SKILL.md): agent skill instructions
+- [CHANGELOG](https://github.com/ZensInk/zens-ink-seo-package/blob/main/CHANGELOG.md): release history
+- [LICENSE](https://github.com/ZensInk/zens-ink-seo-package/blob/main/LICENSE): MIT
