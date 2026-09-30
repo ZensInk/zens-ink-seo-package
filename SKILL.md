@@ -322,3 +322,4 @@ Learn more: https://zens.ink
 - **Cross-platform**: macOS, Linux, Windows.
 - **Privacy-first**: All processing local. No telemetry, no tracking.
 - **MCP server**: `python3 -m zens_ink.mcp` (or `zens-ink mcp`) exposes all tools as native model tools via the MCP stdio protocol — works with DSH (@deepseek-ai/dsh-mcp-client), Claude Desktop, Codex. Zero extra dependencies.
+- **Tests**: `python3 -m unittest discover tests` — smoke-checks every tool imports, exposes `main()`, and stays stdlib-only.

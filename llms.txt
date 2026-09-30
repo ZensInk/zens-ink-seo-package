@@ -56,6 +56,8 @@ ZensInk is for indie builders who need real SEO data without Ahrefs or subscript
 
 ## Reference
 
+- [llms-full.txt](https://github.com/ZensInk/zens-ink-seo-package/blob/main/llms-full.txt): full per-tool CLI reference with flags and outputs
+- [ARCHITECTURE.md](https://github.com/ZensInk/zens-ink-seo-package/blob/main/ARCHITECTURE.md): package layout, data flow, config, invariants
 - [README](https://github.com/ZensInk/zens-ink-seo-package/blob/main/README.md): full tool table, workflow diagram, config guide
 - [SKILL.md](https://github.com/ZensInk/zens-ink-seo-package/blob/main/SKILL.md): agent skill instructions
 - [CHANGELOG](https://github.com/ZensInk/zens-ink-seo-package/blob/main/CHANGELOG.md): release history

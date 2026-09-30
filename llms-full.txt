@@ -1,0 +1,167 @@
+# ZensInk — Full Reference
+
+> Complete per-tool reference for the zero-dependency Python SEO toolkit. Condensed inventory: see llms.txt.
+
+All tools: `zens-ink <tool> [args]` or `python3 -m zens_ink.<tool>`. API keys live in the package-root `.env` (see `.env.example`); tools without a key requirement run offline. Pure Python stdlib.
+
+## keyword_research — long-tail discovery via Google Autocomplete
+
+```
+zens-ink keyword_research "seed keyword" [--lang {en,zh}] [--expand] [--json]
+```
+`--expand` runs the a-z prefix sweep (slower, exhaustive). Output: ranked keyword list. No key.
+
+## keyword_cluster — semantic topic clustering
+
+```
+zens-ink keyword_cluster --file keywords.txt [--threshold 0.3] [--min-size 1] [--csv out.csv] [--json]
+```
+Groups keywords by shared token overlap. Reads file or `--stdin`. No key.
+
+## keyword_volume — real search volume (Bing Webmaster API)
+
+```
+zens-ink keyword_volume "kw" [--file kws.txt] [--country us] [--lang en-US] [--csv out.csv] [--json]
+```
+Language must be a full locale (`en-US`, `zh-CN`). Requires free Bing key.
+
+## brave_volume — demand cross-check via Brave SERP
+
+```
+zens-ink brave_volume "kw" [--file kws.txt] [--country us] [--lang en] [--zh] [--csv] [--json]
+```
+Second opinion on demand when Bing volume is missing. Requires free Brave key.
+
+## kd — keyword difficulty from SERP structure
+
+```
+zens-ink kd "kw" [--gl us] [--hl en] [--zh] [--no-volume] [--json] [--markdown report.md]
+```
+Scores homepage ratio, page-type weights, niche maturity, brand-lock fingerprints (official domain top-3 / brand-family seats / platform density). `--zh` = Chinese SERP. `--markdown` writes a self-contained report. Requires free Serper key. Caches to `kd-cache.json`.
+
+## kgr_auto — KGR opportunity scoring
+
+```
+zens-ink kgr_auto --file kws.txt [--lang {en,zh}] [--country cn] [--bing-lang zh-CN] [--json] [--csv out.csv]
+```
+KGR = allintitle results ÷ monthly volume; <0.25 = low-competition opportunity. Optional Bing key for volume.
+
+## domain_rating — Ahrefs DR via free public API
+
+```
+zens-ink domain_rating example.com [--file domains.txt] [--csv out.csv] [--json] [--no-cache]
+```
+Real Ahrefs Domain Rating 0-100, batch or single. Attribution "Domain Rating by Ahrefs" required in outputs (DR license). Requires free Ahrefs key. Caches to `dr-cache.json`.
+
+## search_intent — keyword-text intent classifier
+
+```
+zens-ink search_intent --file kws.txt [--stdin] [--json] [--output out.txt]
+```
+Four-way classification: informational / commercial / transactional / navigational, plus question/buyer/problem markers. No key.
+
+## serp_intent — SERP-composition intent analysis
+
+```
+zens-ink serp_intent "kw" [--gl us] [--hl en] [--zh] [--cross] [--json]
+```
+Classifies intent from what Google actually ranks (page types in top 10). `--cross` cross-validates against search_intent and flags disagreements. Requires free Serper key.
+
+## content_matrix — prioritized opportunity matrix
+
+```
+zens-ink content_matrix --scores scores.json --clusters clusters.json [--csv out.csv] [--json]
+```
+Consumes kd/volume/cluster outputs into one ranked matrix. No key.
+
+## competitor_gap — sitemap diff
+
+```
+zens-ink competitor_gap --url https://you.com/sitemap.xml --compare https://a.com/sitemap.xml https://b.com/sitemap.xml [--lang en]
+```
+Topics competitors cover that you don't. No key.
+
+## site_audit — 33-check technical SEO + GEO audit
+
+```
+zens-ink site_audit --dist dist --sitemap dist/sitemap.xml [--base /en] [--format {text,json,csv}] [--output out.txt] [--max-image-kb 100] [--verbose]
+```
+Links, meta, images, structured data, hreflang/i18n, staging-subdomain leaks, llms.txt layer. Known limit: cannot parse Astro sitemap-index format (treat those sitemaps as absent). No key.
+
+## onpage_audit — per-page quality scoring
+
+```
+zens-ink onpage_audit --dist dist --sitemap dist/sitemap.xml [--keywords kw.txt] [--base /en] [--format {text,json}] [--output out.txt]
+```
+7 dimensions, 0-100 per page, A-F. No key.
+
+## geo_fanout — Query Fan-out content planning
+
+```
+zens-ink geo_fanout --icp "healthcare SMBs" [--lang {en,zh}] [--no-live] [--json]
+```
+Plans the question fan-out an AI engine receives for your ICP. No key.
+
+## reddit_blueocean — Reddit demand mining
+
+```
+zens-ink reddit_blueocean --subreddits r/foo,r/bar --niche "topic" [--lang {en,zh}] [--no-demand] [--json]
+```
+Finds questions with Reddit traction but thin Google demand. No key (Autocomplete-based demand layer).
+
+## content_qc — pre-publish gate for AI citability
+
+```
+zens-ink content_qc article.md [--format {text,json}] [--min-score 70]
+```
+14 weighted checks: BLUF, sourcing, claims structure — scores whether content is AI-citable. No key.
+
+## llms_gen — generate llms.txt for your site
+
+```
+zens-ink llms_gen --dist dist [--site https://site.com] [--name Brand] [--tagline "line"] [--out dist] [--full-only]
+```
+Builds llms.txt + llms-full.txt from a static build dir or `--sitemap` URL. No key.
+
+## ai_crawler_audit — robots.txt + AI-readiness score
+
+```
+zens-ink ai_crawler_audit https://site.com [--markdown report.md] [--json out.json]
+```
+Audits robots.txt AI-crawler policy (train vs retrieval) and the llms.txt layer. No key.
+
+## rank_tracker — SQLite position history
+
+```
+zens-ink rank_tracker "kw1" "kw2" [--domain site.com]
+```
+Snapshots positions into SQLite, diffs against previous runs. Requires free Serper key.
+
+## setup_gsc — one-time GSC OAuth
+
+```
+zens-ink setup_gsc
+```
+Walks through OAuth consent and stores credentials for search_performance.
+
+## search_performance — your real Google data
+
+```
+zens-ink search_performance
+```
+Queries Google Search Console for your site's impressions/clicks/position by query and page. Requires GSC OAuth from setup_gsc.
+
+## mcp — MCP stdio server
+
+```
+python3 -m zens_ink.mcp
+```
+Exposes every installed tool as an MCP tool (`mcp__zensink__*`). Detects `zens_ink_pro` if installed alongside and exposes Pro tools too. Config for DSH / Claude / Codex in README §MCP.
+
+## Package facts
+
+- Version: 1.4.8 · Python 3.10+ · MIT
+- PyPI: https://pypi.org/project/zens-ink/
+- Source: https://github.com/ZensInk/zens-ink-seo-package
+- Site + Pro: https://zens.ink
+- Architecture: see ARCHITECTURE.md
