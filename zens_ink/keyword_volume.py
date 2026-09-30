@@ -23,9 +23,18 @@ from zens_ink.config import BING_API_KEY
 
 BASE = "https://ssl.bing.com/webmaster/api.svc/json"
 
+# Bing requires full locale codes (language=en -> HTTP 400; en-US works)
+_LOCALE_FIX = {"en": "en-US", "zh": "zh-CN", "ja": "ja-JP", "es": "es-ES",
+              "de": "de-DE", "fr": "fr-FR", "ko": "ko-KR", "pt": "pt-BR"}
+
+
+def _norm_lang(language: str) -> str:
+    return _LOCALE_FIX.get(language.lower(), language)
+
 
 def get_stats(keyword: str, country: str = "cn", language: str = "zh-CN") -> dict:
     """Fetch weekly impression data for a single keyword."""
+    language = _norm_lang(language)
     if not BING_API_KEY:
         print("ERROR: BING_API_KEY not set. See .env.example", file=sys.stderr)
         sys.exit(1)
