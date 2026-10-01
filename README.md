@@ -4,7 +4,7 @@
 
 # ZensInk
 
-<img src="assets/hero-banner.png" alt="ZensInk — SEO Toolkit for Indie Builders" width="100%">
+<img src="https://raw.githubusercontent.com/ZensInk/zens-ink-seo-package/main/assets/hero-banner.png" alt="ZensInk — SEO Toolkit for Indie Builders" width="100%">
 
 ### SEO Toolkit for Indie Builders
 

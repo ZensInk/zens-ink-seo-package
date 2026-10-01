@@ -4,7 +4,7 @@
 
 # ZensInk
 
-<img src="assets/hero-banner-zh.png" alt="ZensInk — 独立开发者的 SEO 工具包" width="100%">
+<img src="https://raw.githubusercontent.com/ZensInk/zens-ink-seo-package/main/assets/hero-banner-zh.png" alt="ZensInk — 独立开发者的 SEO 工具包" width="100%">
 
 ### 独立开发者的 SEO 工具包
 

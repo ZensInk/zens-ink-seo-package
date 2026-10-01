@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.10 — 2026-10-01
+
+**Brand card refresh.**
+- New hero banner (EN + ZH): current Z mark, tool pipeline, `pip install`
+  line — replaces the retired ink-drop design.
+- README hero images now use absolute URLs so they render on PyPI too.
+
 ## v1.4.9 — 2026-09-30
 
 **Repo agent layer — make the repo itself AI-readable.**

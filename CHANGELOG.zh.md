@@ -1,3 +1,25 @@
+## v1.4.10 — 2026-10-01
+
+**品牌卡片更新。**
+- 新 hero banner（中英双语）：现行 Z 标 + 工具管线 + `pip install`
+  命令行——替换退役的墨水滴旧设计。
+- README 头图改为绝对 URL，PyPI 页面也能正常显示。
+
+## v1.4.9 — 2026-09-30
+
+**仓库 agent 层——让仓库本身对 AI 可读。**
+Gitingest、GitDiagram（合计 15k+ stars）把「AI 工具如何消化你的仓库」变成了
+真实入口：agent 先通过这些摘要认识项目，再见到代码。本版为 zens-ink 自身
+补上这一层，并用新的 Pro repo_readiness 审计自测。
+
+- **llms.txt + llms-full.txt**（仓库根目录）——agent 可读摘要：
+  20 个工具清单、MCP / skill 入口、安装命令、链接。
+- **ARCHITECTURE.md**——一页讲清模块分层与数据流。
+- **冒烟测试**（`tests/test_smoke.py`）——import 与 CLI 面回归保障。
+- **FUNDING.yml**——指向 zens.ink 定价页。
+- 经 Pro v2.6.0 `repo_readiness` 审计验证：76/C → 91/A。
+  对照：gitdiagram 63/D、psf/requests 59/F。
+
 ## v1.4.8 — 2026-09-08
 
 **新工具：ai_crawler_audit — 查清谁真的能读你的内容。**
