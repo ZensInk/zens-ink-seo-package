@@ -1,6 +1,6 @@
 ---
 name: keyword-research
- description: >-
+description: >-
   Find low-competition keyword opportunities without paid tools (Ahrefs,
   Semrush). Runs real zero-dependency Python CLIs: Google Autocomplete
   discovery (with a-z long-tail expansion), semantic clustering, Bing volume
