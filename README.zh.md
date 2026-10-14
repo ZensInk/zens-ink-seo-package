@@ -77,6 +77,21 @@ git clone https://github.com/ZensInk/zens-ink-seo-package.git
 cd zens-ink-seo-package
 ```
 
+**方式三 — 安装为 agent skills**（Claude Code、Cursor、Codex，任何读 SKILL.md 的 agent）
+
+```bash
+# 装单个技能（不用付费工具做关键词研究）
+npx skills add ZensInk/zens-ink-seo-package --skill keyword-research
+
+# 装全部技能（研究、难度、意图、审计、内容缺口、排名追踪、Reddit、GEO）
+npx skills add ZensInk/zens-ink-seo-package
+
+# 列出可用技能
+npx skills add ZensInk/zens-ink-seo-package --list
+```
+
+每个 skill 都是一份 playbook：什么时机触发、精确命令、怎么读输出、下一步干什么——agent 自己看懂就会干活，不用你解释。浏览全部技能：[zens.ink/skills](https://zens.ink/skills/)。
+
 ## 快速开始
 
 ```bash

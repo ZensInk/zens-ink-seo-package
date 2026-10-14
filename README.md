@@ -77,6 +77,23 @@ git clone https://github.com/ZensInk/zens-ink-seo-package.git
 cd zens-ink-seo-package
 ```
 
+**Option C — install as agent skills** (Claude Code, Cursor, Codex, any agent that reads SKILL.md)
+
+```bash
+# One job-skill (keyword research without paid tools)
+npx skills add ZensInk/zens-ink-seo-package --skill keyword-research
+
+# All skills (research, difficulty, intent, audit, gaps, tracking, Reddit, GEO)
+npx skills add ZensInk/zens-ink-seo-package
+
+# List what's available
+npx skills add ZensInk/zens-ink-seo-package --list
+```
+
+Each skill is a playbook: when to fire, exact commands, how to read the output,
+and what to do next — so your agent runs the tools without you explaining them.
+Browse them at [zens.ink/skills](https://zens.ink/skills/).
+
 ## Quick Start
 
 ```bash
