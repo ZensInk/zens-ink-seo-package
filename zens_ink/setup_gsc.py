@@ -105,7 +105,9 @@ def main():
         "refresh_token": refresh_token,
     }
 
-    os.makedirs(os.path.dirname(ADC_PATH), exist_ok=True)
+    _adc_dir = os.path.dirname(ADC_PATH)
+    if _adc_dir:  # bare filename → dirname is "" and makedirs("") raises
+        os.makedirs(_adc_dir, exist_ok=True)
     with open(ADC_PATH, "w") as f:
         json.dump(creds, f, indent=2)
     os.chmod(ADC_PATH, 0o600)

@@ -33,11 +33,19 @@ def _norm_lang(language: str) -> str:
 
 
 def get_stats(keyword: str, country: str = "cn", language: str = "zh-CN") -> dict:
-    """Fetch weekly impression data for a single keyword."""
+    """Fetch weekly impression data for a single keyword.
+
+    Returns zero-volume with an error field when the key is unset, so library
+    callers (kgr_auto etc.) degrade gracefully; the CLI exits loudly instead.
+    """
     language = _norm_lang(language)
     if not BING_API_KEY:
-        print("ERROR: BING_API_KEY not set. See .env.example", file=sys.stderr)
-        sys.exit(1)
+        return {
+            "keyword": keyword,
+            "avg_weekly": 0,
+            "trend": "no_data",
+            "error": "BING_API_KEY not set",
+        }
 
     q = urllib.parse.quote(keyword)
     url = f"{BASE}/GetKeywordStats?q={q}&country={country}&language={language}&apikey={BING_API_KEY}"
@@ -113,6 +121,10 @@ def main():
     parser.add_argument("--csv", help="Export to CSV")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
+
+    if not BING_API_KEY:
+        print("ERROR: BING_API_KEY not set. See .env.example", file=sys.stderr)
+        sys.exit(1)
 
     kws = []
     if args.file:

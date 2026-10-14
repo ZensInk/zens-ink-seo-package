@@ -47,14 +47,16 @@ SERPER_URL = "https://google.serper.dev/search"
 # Page types are determined from URL path patterns, domain, and title signals.
 
 # URL path patterns (checked in priority order)
+# Content rules are evaluated BEFORE transactional/product ones so a blog
+# post like /blog/product-led-growth is typed blog, not product.
 _PATH_RULES = [
+    # Content (checked first — content sections outrank keyword substrings)
+    ("blog",         [r"^/(blog|article|post|news)/", r"^/(guide|how-to|tutorial|insight)(/|$)"]),
     # Transactional
-    ("pricing",      [r"/pricing", r"/plans", r"/checkout", r"/buy", r"/order", r"/purchase", r"/subscribe"]),
-    ("product",      [r"/product", r"/features", r"/app/", r"/software/", r"/platform/", r"/solution"]),
+    ("pricing",      [r"^/(pricing|plans|checkout|buy|order|purchase|subscribe)(/|$)"]),
+    ("product",      [r"^/(product|features|app|software|platform|solution)s?(/|$)"]),
     # Tools / interactive
-    ("tool",         [r"/tool", r"/calculator", r"/checker", r"/analyzer", r"/generator", r"/converter", r"/tester"]),
-    # Content
-    ("blog",         [r"/blog/", r"/article/", r"/post/", r"/guide/", r"/how-to", r"/tutorial", r"/news/", r"/insight"]),
+    ("tool",         [r"^/(tool|calculator|checker|analyzer|generator|converter|tester)s?(/|$)"]),
     ("comparison",   [r"/vs/", r"/compare", r"/alternatives", r"/best-", r"/top-"]),
     ("documentation",[r"/docs", r"/documentation", r"/reference", r"/api/", r"/manual"]),
     ("directory",    [r"/directory", r"/list/", r"/category/", r"/catalog", r"/collection", r"/themes", r"/templates", r"/resources"]),
@@ -405,8 +407,16 @@ def _http_post_json(url, data, headers=None, timeout=15):
     if headers:
         h.update(headers)
     req = urllib.request.Request(url, data=body, headers=h, method="POST")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        detail = ""
+        try:
+            detail = e.read().decode("utf-8", errors="replace")[:300]
+        except Exception:
+            pass
+        raise RuntimeError(f"HTTP {e.code} from {url}: {detail}") from e
 
 
 def fetch_serp(keyword, gl="us", hl="en", num=10):
@@ -529,7 +539,8 @@ def format_report(result):
     # Page type distribution
     lines.append("  SERP Page Types:")
     for ptype, count in result["page_type_distribution"].items():
-        pct = round(count / 10 * 100)
+        total = sum(result["page_type_distribution"].values()) or 1
+        pct = round(count / total * 100)
         bar = "■" * count
         lines.append(f"    {ptype:15s} {count} ({pct}%) {bar}")
     lines.append("")

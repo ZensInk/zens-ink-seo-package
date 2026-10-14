@@ -152,7 +152,8 @@ def get_autocomplete(keyword: str, hl: str = "en") -> list[str]:
     try:
         resp = urllib.request.urlopen(req, timeout=10)
         data = json.loads(resp.read().decode())
-        return data[1] if len(data) > 1 else []
+        s = data[1] if len(data) > 1 else []
+        return s if isinstance(s, list) else []
     except Exception:
         return []
 
@@ -217,11 +218,10 @@ def generate_fanout(
                 continue
             seen.add(query_lower)
 
-            # Check if real users search this
-            has_live_demand = query_lower in live_suggestions or any(
-                query_lower in s or s in query_lower
-                for s in live_suggestions
-            )
+            # Check if real users search this — EXACT match only. Containment
+            # or prefix arms over-validate: a short suggestion like "crm" must
+            # not mark "crm pricing"/"crm alternatives" as live-demand queries
+            has_live_demand = query_lower in live_suggestions
 
             # Estimate competition (very rough proxy)
             # Long-tail queries (>4 words) tend to be lower competition
@@ -260,7 +260,7 @@ def generate_fanout(
     # Build pillar/cluster recommendation
     pillar = {
         "pillar_keyword": keyword,
-        "recommended_pillar_article": f"The Ultimate Guide to {keyword.title()}" if lang == "en" else f"{keyword} 完全指南",
+        "recommended_pillar_article": (f"The Ultimate Guide to {keyword[0].upper()}{keyword[1:]}" if keyword else keyword) if lang == "en" else f"{keyword} 完全指南",
         "cluster_articles": [],
     }
 
@@ -331,17 +331,16 @@ def format_report(data: dict) -> str:
     buf.write(f"SUB-QUERIES BY INTENT DIMENSION\n")
     buf.write(f"{sep}\n")
 
-    current_dim = ""
-    for sq in data["sub_queries"]:
-        if sq["dimension"] != current_dim:
-            current_dim = sq["dimension"]
-            dim_meta = INTENT_DIMENSIONS[current_dim]
-            buf.write(f"\n  [{dim_meta['label']}] ({dim_meta['commercial_weight']} intent)\n")
-            buf.write(f"  {dim_meta['description']}\n\n")
-
-        gold = " ★" if sq["gold_score"] >= 4 else ""
-        live = " ✓" if sq["live_demand"] else ""
-        buf.write(f"    {sq['query']:<50} comp:{sq['competition_estimate']:<7}{gold}{live}\n")
+    for dim_key, dim_meta in INTENT_DIMENSIONS.items():
+        dim_rows = [sq for sq in data["sub_queries"] if sq["dimension"] == dim_key]
+        if not dim_rows:
+            continue
+        buf.write(f"\n  [{dim_meta['label']}] ({dim_meta['commercial_weight']} intent)\n")
+        buf.write(f"  {dim_meta['description']}\n\n")
+        for sq in dim_rows:
+            gold = " ★" if sq["gold_score"] >= 4 else ""
+            live = " ✓" if sq["live_demand"] else ""
+            buf.write(f"    {sq['query']:<50} comp:{sq['competition_estimate']:<7}{gold}{live}\n")
 
     # ── Content Plan ──
     buf.write(f"\n{sep}\n")

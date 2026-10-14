@@ -29,7 +29,8 @@ def get_autocomplete(keyword: str, hl: str = "en") -> list[str]:
     try:
         resp = urllib.request.urlopen(req, timeout=10)
         data = json.loads(resp.read().decode())
-        return data[1] if len(data) > 1 else []
+        s = data[1] if len(data) > 1 else []
+        return s if isinstance(s, list) else []
     except Exception as e:
         print(f"  [warn] autocomplete failed for '{keyword}': {e}", file=sys.stderr)
         return []

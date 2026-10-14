@@ -31,7 +31,26 @@ def load_scores(filepath: str) -> list[dict]:
         data = json.loads(text)
         if isinstance(data, dict) and "results" in data:
             data = data["results"]
-        return data
+        if not isinstance(data, list):
+            raise ValueError(f"Expected a JSON list (or {{'results': [...]}}) in {filepath}")
+        # Normalize numeric fields the same way the CSV branch does, so
+        # feeding the tool's own --json output back in doesn't crash the sort
+        for row in data:
+            if not isinstance(row, dict):
+                continue
+            for key in ("opportunity_score", "competition_score", "volume_score"):
+                if key in row:
+                    try:
+                        row[key] = float(row[key])
+                    except (TypeError, ValueError):
+                        row[key] = 0
+            for key in ("avg_weekly_volume", "quarterly_volume", "autocomplete_count"):
+                if key in row:
+                    try:
+                        row[key] = int(float(row[key]))
+                    except (TypeError, ValueError):
+                        row[key] = 0
+        return [r for r in data if isinstance(r, dict)]
 
     # CSV
     results = []

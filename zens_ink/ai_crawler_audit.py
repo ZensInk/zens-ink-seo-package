@@ -71,14 +71,17 @@ def parse_robots(txt: str) -> dict:
     for raw in txt.splitlines():
         line = raw.split("#", 1)[0].strip()
         if not line:
+            # blank line ends the current group per robots.txt spec
+            current = []
             continue
         key, _, val = line.partition(":")
         key = key.strip().lower()
         val = val.strip()
         if key == "user-agent":
-            current = [val] if val else []
-            for ua in current:
-                groups.setdefault(ua, [])
+            # consecutive User-agent lines share one rule block — accumulate
+            if val and val not in current:
+                current.append(val)
+                groups.setdefault(val, [])
         elif key == "sitemap":
             if val:
                 sitemaps.append(val)

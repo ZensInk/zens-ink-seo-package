@@ -1,5 +1,70 @@
 # Changelog
 
+## v1.4.11 — 2026-10-14
+
+**Independent audit hardening — 39 defects fixed (DSH round 1: 40 findings, 12H/15M/13L).**
+The toolkit went through its first full independent code audit (DeepSeek Harness,
+every module read end-to-end, every finding reproduced locally before the fix).
+The defining pattern the audit exposed: tools that fail *silently confidently*
+rather than loudly. This release fixes all 39 verified findings; one item
+(Brave `count` field schema) stays flagged UNVERIFIED pending a live keyed check.
+
+High-severity fixes:
+- `mcp`: competitor_gap was unusable over MCP — every call passed an
+  unsupported `--json` and errored (registry now flags `json_flag: False`).
+- `keyword_research` / `geo_fanout` / `reddit_blueocean`: autocomplete
+  envelope `["q", null]` returned `None` and crashed every caller; now `[]`.
+- `site_audit`: JSON-LD `@type` matching used a literal `\s*` so
+  pretty-printed schema was invisible (Product/FAQ never detected).
+- `site_audit`: the homepage was always reported as an orphan (`/` was
+  dropped from the link map).
+- `ai_crawler_audit`: consecutive `User-agent:` lines overwrote each other —
+  `Disallow: /` groups read as "unlisted" for all but the last agent.
+- `rank_tracker`: `lstrip("www.")` mangled domains (`walmart.com` →
+  `almart.com`, never matched); substring matching stored strangers' ranks
+  as yours; the 999 not-found sentinel fabricated ±996-place "trends".
+- `search_intent`: bare `get` token made "how to get more traffic"
+  transactional. `serp_intent`: unanchored path rules typed
+  `/blog/product-led-growth` as product; percentages divided by hardcoded 10.
+- `competitor_gap`: sub-sitemaps silently capped at 10 (partial inventories
+  compared as complete); `--compare` keyed by netloc so same-domain sitemaps
+  overwrote each other.
+- `geo_fanout`: inverted containment marked every sub-query as
+  demand-validated; dimension report printed each header up to 3×.
+- `kgr_auto`: missing Bing key aborted the run after promising graceful
+  degradation (keyword_volume now degrades in-library, CLI still exits loudly).
+- `reddit_blueocean`: substring matching let `top` hit *laptop*/*desktop*.
+
+Medium/low: MCP protocol negotiation now honest (unsupported versions fall
+back instead of echoing), invalid params map to -32602; `content_qc` counts
+CJK characters (the publishing gate was meaningless on Chinese drafts);
+`search_performance` paginates GSC rows (top-50 subtotals no longer printed
+as totals); `keyword_cluster` parses quoted CSV properly; `content_matrix`
+JSON input coerces numerics; `domain_rating` cache falls back to ~/.zens_ink
+when site-packages isn't writable; `llms_gen` unescapes sitemap entities and
+survives a 404 sitemap; `setup_gsc` no longer discards a fresh OAuth token
+on a bare-filename path; CLI dispatcher registered `content_qc` + `llms_gen`
+(were documented but "Unknown tool"); TOOLS_COUNT 20 → 22; SKILL.md frontmatter
+refreshed (was stale at v1.2.1 / 13 tools).
+
+Round 2 (full re-verification): 37/39 fully fixed, 2 PARTIAL (geo_fanout
+prefix over-validation; kd HTTP error handling), 1 correctly DEFERRED — plus
+2 new defects introduced by the fixes themselves (serp_intent /guide-style
+patterns left unanchored mistyped /pricing/guide as blog; content_matrix JSON
+coerced only 3 of 6 numeric fields). All four corrected in round 3: content
+path patterns fully anchored (`/pricing/guide` stays pricing, `/guide/x` is
+blog), six-field numeric coercion in both branches, exact-match live demand,
+kd HTTPError handling. Round-2 report archived as
+`docs/audit-2026-10-14-dsh-round2.md`.
+
+Round 3 (spot check on the four round-2 items): all four verified FIXED,
+v1.4.11 cleared as releasable. Reports archived:
+`docs/audit-2026-10-14-dsh-round{1,2,3}.md`.
+
+New: `tests/test_audit_fixes.py` — 18 regression tests pinning every fix
+above; smoke tests extended. Audit reports archived in-repo
+(`docs/audit-2026-10-14-dsh-round1.md`, `docs/audit-2026-10-14-dsh-round2.md`).
+
 ## v1.4.10 — 2026-10-01
 
 **Brand card refresh.**

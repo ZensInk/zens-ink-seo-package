@@ -19,6 +19,7 @@ Usage:
 """
 
 import argparse
+import html
 import re
 import sys
 import urllib.request
@@ -105,13 +106,30 @@ def scan_sitemap(sitemap_url: str) -> list:
         with urllib.request.urlopen(req, timeout=30) as r:
             return r.read().decode("utf-8", errors="replace")
 
-    xml = fetch(sitemap_url)
+    def locs(xml: str) -> list:
+        # sitemap <loc> values are XML-escaped and may be pretty-printed across
+        # lines — unescape entities and strip whitespace before use
+        return [
+            html.unescape(m.group(1)).strip()
+            for m in re.finditer(r"<loc>([^<]+)</loc>", xml)
+        ]
+
+    try:
+        xml = fetch(sitemap_url)
+    except Exception as e:
+        print(f"ERROR: cannot fetch sitemap {sitemap_url}: {e}", file=sys.stderr)
+        return []
     if "<sitemapindex" in xml:
         for m in re.finditer(r"<loc>([^<]+)</loc>", xml):
-            xml2 = fetch(m.group(1))
-            urls += re.findall(r"<loc>([^<]+)</loc>", xml2)
+            sub = html.unescape(m.group(1)).strip()
+            try:
+                xml2 = fetch(sub)
+            except Exception as e:
+                print(f"  [warn] sub-sitemap fetch failed: {sub}: {e}", file=sys.stderr)
+                continue
+            urls += locs(xml2)
     else:
-        urls = re.findall(r"<loc>([^<]+)</loc>", xml)
+        urls = locs(xml)
 
     pages = []
     for u in urls:

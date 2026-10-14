@@ -1,3 +1,60 @@
+## v1.4.11 — 2026-10-14
+
+**独立审计加固——修复 39 处缺陷（DSH round 1：40 项发现，12 高 / 15 中 / 13 低）。**
+工具包首次接受完整独立代码审计（DeepSeek Harness，逐模块通读，每项发现先本地
+复现再修复）。审计暴露的核心模式：工具失败时「自信地沉默」而不是大声报错。
+本版修复全部 39 项已验证发现；1 项（Brave `count` 字段 schema）标记 UNVERIFIED，
+等一次带 key 的真实响应确认。
+
+高危修复：
+- `mcp`：competitor_gap 在 MCP 上完全不可用——每次调用都附加不支持的
+  `--json` 直接报错（注册表补 `json_flag: False`）。
+- `keyword_research` / `geo_fanout` / `reddit_blueocean`：autocomplete
+  响应 `["q", null]` 返回 `None` 导致所有调用方崩溃；现返回 `[]`。
+- `site_audit`：JSON-LD `@type` 匹配用了字面 `\s*`，格式化排版的结构化
+  数据全部检测不到（Product/FAQ 永远 missing）；首页永远被报成孤儿页
+  （链接映射丢掉了 `/`）。
+- `ai_crawler_audit`：连续 `User-agent:` 行互相覆盖——`Disallow: /` 组
+  对除最后一个 agent 外全部读成「未列出」。
+- `rank_tracker`：`lstrip("www.")` 会啃域名（`walmart.com` → `almart.com`
+  永远匹配不上）；子串匹配会把别人的排名存成你的；999 未找到哨兵值
+  捏造 ±996 位的「趋势」。
+- `search_intent`：裸 `get` 词元把「how to get more traffic」判成
+  transactional。`serp_intent`：未锚定的路径规则把 `/blog/product-led-growth`
+  归类为 product；百分比硬除以 10。
+- `competitor_gap`：子 sitemap 静默截断前 10 个（残缺清单当完整对比）；
+  `--compare` 按 netloc 做 key，同域多份 sitemap 互相覆盖。
+- `geo_fanout`：反向包含判断把所有子查询标成「有真实搜索需求」；
+  维度报告同一个标题最多打 3 遍。
+- `kgr_auto`：缺 Bing key 时先承诺优雅降级然后整个进程退出
+  （keyword_volume 库调用现返回零值，CLI 仍然明确报错退出）。
+- `reddit_blueocean`：子串匹配让 `top` 命中 *laptop*/*desktop*。
+
+中低危：MCP 协议协商诚实化（不支持的版本回落而非回声）、参数错误映射
+-32602；`content_qc` 统计 CJK 字符（中文稿的发布门禁原来是空转）；
+`search_performance` 分页拉取 GSC 行（top-50 小计不再冒充总量）；
+`keyword_cluster` 正确解析带引号 CSV；`content_matrix` JSON 输入做数值
+转换；`domain_rating` 缓存在 site-packages 不可写时回落 ~/.zens_ink；
+`llms_gen` 解码 sitemap 实体、404 sitemap 不再裸崩；`setup_gsc` 裸文件名
+路径不再丢掉刚授权的 OAuth token；CLI 派发器补上 `content_qc` +
+`llms_gen`（此前有文档但报 Unknown tool）；TOOLS_COUNT 20 → 22；
+SKILL.md frontmatter 刷新（此前停在 v1.2.1 / 13 工具）。
+
+第二轮（全量复核）：37/39 完全修复，2 项 PARTIAL（geo_fanout 前缀
+过验证；kd HTTP 错误处理），1 项正确 DEFERRED——另发现修复本身引入
+2 个新缺陷（serp_intent 的 /guide 类模式未锚定，把 /pricing/guide 误判
+为 blog；content_matrix JSON 只转换 3/6 个数值字段）。第三轮四项全部
+修正：内容路径模式完全锚定（/pricing/guide 归 pricing、/guide/x 归
+blog）、双分支六字段数值转换、live demand 精确匹配、kd HTTPError 处理。
+第二轮报告归档 `docs/audit-2026-10-14-dsh-round2.md`。
+
+第三轮（四项抽查）：全部确认 FIXED，v1.4.11 获准发版。报告归档
+`docs/audit-2026-10-14-dsh-round{1,2,3}.md`。
+
+新增 `tests/test_audit_fixes.py`——18 条回归测试钉死以上修复；冒烟测试
+同步扩展。审计报告归档于仓库内 `docs/audit-2026-10-14-dsh-round1.md`、
+`docs/audit-2026-10-14-dsh-round2.md`。
+
 ## v1.4.10 — 2026-10-01
 
 **品牌卡片更新。**

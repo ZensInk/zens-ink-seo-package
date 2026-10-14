@@ -22,6 +22,7 @@ import sys
 import os
 import time
 import math
+import urllib.error
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone
@@ -131,8 +132,16 @@ def _http_post_json(url, data, headers=None, timeout=15):
     if headers:
         h.update(headers)
     req = urllib.request.Request(url, data=body, headers=h, method="POST")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        detail = ""
+        try:
+            detail = e.read().decode("utf-8", errors="replace")[:300]
+        except Exception:
+            pass
+        raise RuntimeError(f"HTTP {e.code} from {url}: {detail}") from e
 
 # ── RDAP domain age ────────────────────────────────────────────────────────
 
@@ -267,8 +276,8 @@ def estimate_domain_auth(domain, registration_year=None):
     if registration_year:
         age = datetime.now(timezone.utc).year - registration_year
         # Conservative age curve (can't match real DR, just a rough proxy):
-        # 1yr→0.28, 2yr→0.34, 3yr→0.38, 5yr→0.45, 8yr→0.52, 10yr→0.56,
-        # 15yr→0.63, 20yr→0.68, 25yr→0.72
+        # 1yr→0.22, 2yr→0.31, 3yr→0.37, 5yr→0.44, 8yr→0.50, 10yr→0.53,
+        # 15yr→0.59, 20yr→0.63, 25yr→0.66 (log curve, soft-capped near 0.66)
         if age <= 0:
             score = 0.20
         else:
@@ -422,8 +431,9 @@ def _score_signals(results, search_volume=None):
     mature_dedicated = sum(
         1 for r in results
         if r["page_type"] == "dedicated"
-        and (r.get("registration_year") and datetime.now(timezone.utc).year - r["registration_year"] > 8
-             or r["authority_score"] >= 0.70)
+        and (r["authority_score"] >= 0.70
+             or (r.get("registration_year") is not None
+                 and datetime.now(timezone.utc).year - r["registration_year"] > 8))
     )
     weak_domains = [r for r in results if r["authority_score"] < 0.50 and not r["is_platform"]]
     weak_in_top5 = [r for r in weak_domains if r["position"] <= 5]

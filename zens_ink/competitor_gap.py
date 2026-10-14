@@ -69,21 +69,14 @@ def fetch_sitemap(url: str, timeout: int = 10, depth: int = 0) -> list[str]:
             continue
         xml_urls = [u for u in urls if u.endswith(".xml")]
         page_urls = [u for u in urls if not u.endswith(".xml")]
-        for sub in xml_urls[:10]:
+        if xml_urls and depth == 0 and len(xml_urls) > 50:
+            print(f"  [warn] large sitemap index ({len(xml_urls)} sub-sitemaps) — this may take a while", file=sys.stderr)
+        for sub in xml_urls:
             page_urls.extend(fetch_sitemap(sub, timeout, depth + 1))
         return page_urls
 
     print(f"  [warn] no sitemap found for {url}", file=sys.stderr)
     return []
-
-    urls = re.findall(r"<loc>([^<]+)</loc>", data)
-    xml_urls = [u for u in urls if u.endswith(".xml")]
-    page_urls = [u for u in urls if not u.endswith(".xml")]
-
-    for sub in xml_urls[:10]:
-        page_urls.extend(fetch_sitemap(sub, timeout, depth + 1))
-
-    return page_urls
 
 
 def extract_topics(urls: list[str], lang: str | None = None) -> Counter:
@@ -94,7 +87,9 @@ def extract_topics(urls: list[str], lang: str | None = None) -> Counter:
         if lang and f"/{lang}/" not in path:
             continue
         path = re.sub(r"^/(en|zh|ja|ko|de|fr|it|ru|es|pt|nl|th|tr|pl|da)/", "/", path)
-        if re.match(r"^/(pricing|blog|api|admin|login|signup|account)", path):
+        # Filter system/utility PAGES, not whole content sections — /blog/xxx
+        # posts are exactly the competitive content we're here to find
+        if re.match(r"^/(pricing|api|admin|login|signup|account)(/|$)", path):
             continue
         segments = [s for s in path.split("/") if s]
         if segments:
@@ -149,7 +144,10 @@ def main():
     all_topics = {}
     for url in urls_to_check:
         _, topics = analyze(url, args.lang)
-        all_topics[urlparse(url).netloc] = set(topics.keys())
+        # key by host+path — two sitemap parts on one domain must not
+        # overwrite each other (netloc alone collapses them)
+        key = urlparse(url).netloc + urlparse(url).path
+        all_topics[key] = set(topics.keys())
 
     if len(all_topics) > 1:
         print(f"\n{'='*60}")

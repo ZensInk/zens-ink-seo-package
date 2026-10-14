@@ -18,6 +18,7 @@ Usage:
 """
 
 import json
+import os
 import csv
 import sys
 import time
@@ -30,7 +31,12 @@ from zens_ink.config import AHREFS_API_KEY
 AHREFS_DR_URL = "https://api.ahrefs.com/v3/public/domain-rating-free"
 ATTRIBUTION = "Domain Rating by Ahrefs (https://ahrefs.com/)"
 
-CACHE_PATH = Path(__file__).resolve().parent.parent / "dr-cache.json"
+# Cache in the user's home so a normal pip install (read-only site-packages)
+# doesn't silently disable caching; dev checkout falls back to the repo copy
+_CACHE_FILENAME = "dr-cache.json"
+_HOME_CACHE = Path.home() / ".zens_ink" / _CACHE_FILENAME
+_REPO_CACHE = Path(__file__).resolve().parent.parent / _CACHE_FILENAME
+CACHE_PATH = _REPO_CACHE if _REPO_CACHE.parent.exists() and os.access(_REPO_CACHE.parent, os.W_OK) else _HOME_CACHE
 
 
 # ── Input normalization ────────────────────────────────────────────────────
@@ -63,13 +69,20 @@ def _load_cache():
     return {}
 
 
+_cache_warned = False
+
+
 def _save_cache(cache):
+    global _cache_warned
     try:
+        CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
         CACHE_PATH.write_text(
             json.dumps(cache, indent=1, ensure_ascii=False), encoding="utf-8"
         )
-    except Exception:
-        pass
+    except Exception as e:
+        if not _cache_warned:
+            print(f"  [warn] DR cache not writable ({CACHE_PATH}): {e}", file=sys.stderr)
+            _cache_warned = True
 
 
 # ── API ─────────────────────────────────────────────────────────────────────

@@ -35,7 +35,7 @@ _INTENT_RULES = [
     # ── Transactional ──
     ("transactional", [
         # EN
-        r"\b(buy|purchase|order|shop|deals?|discount|coupon|sale|sign\s?up|subscribe|download|free\s?trial|hire|get|pricing|plans?|checkout)\b",
+        r"\b(buy|purchase|order|shop|deals?|discount|coupon|sale|sign\s?up|subscribe|download|free\s?trial|hire|pricing|plans?|checkout)\b",
         # ZH
         r"(购买|买|订购|下单|优惠|折扣|优惠券|促销|降价|注册|订阅|下载|免费试用|雇佣|开通|充值|付款|价格表|套餐)",
     ]),

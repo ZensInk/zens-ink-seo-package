@@ -76,7 +76,8 @@ def estimate_demand(keyword, brave_data):
     - Result freshness: recent results = active search demand
     """
     if not brave_data or brave_data.get("error"):
-        return {"keyword": keyword, "demand_score": 0, "source": "brave", "error": brave_data.get("error", "no data")}
+        err = (brave_data or {}).get("error", "no data")
+        return {"keyword": keyword, "demand_score": 0, "source": "brave", "error": err}
 
     web = brave_data.get("web", {})
     results = web.get("results", [])
@@ -84,7 +85,9 @@ def estimate_demand(keyword, brave_data):
     if not results:
         return {"keyword": keyword, "demand_score": 0, "source": "brave", "note": "no results"}
 
-    # Total result count (Brave sometimes returns this)
+    # Total result count (Brave sometimes returns this). NOTE: if live
+    # responses never carry "count", the log-scaled signal stays at the flat
+    # 15 fallback — needs one keyed live response to confirm (audit #40).
     total_count = web.get("count", 0) or 0
 
     # Score from total count (log-scaled)

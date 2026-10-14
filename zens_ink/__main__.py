@@ -32,6 +32,9 @@ TOOLS = {
     "search_performance": "Your site's Google search data (GSC)",
     # Tracking
     "rank_tracker":       "SQLite-backed keyword position history",
+    # Content quality & GEO files
+    "content_qc":         "Pre-publish content gate (fact density, vagueness, structure)",
+    "llms_gen":           "Generate llms.txt + llms-full.txt from your sitemap",
     # MCP server
     "mcp":               "Run as MCP stdio server (DSH / Claude / Codex integration)",
 }

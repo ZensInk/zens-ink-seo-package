@@ -85,8 +85,7 @@ def parse_sitemap(sitemap_path: Path, base_path: str = "") -> set[str]:
                 sitemap_path = alt_path
                 break
         else:
-            print(f"ERROR: Sitemap not found: {sitemap_path}", file=sys.stderr)
-            sys.exit(1)
+            raise FileNotFoundError(f"Sitemap not found: {sitemap_path}")
 
     content = sitemap_path.read_text(errors="ignore")
 
@@ -417,7 +416,7 @@ def check_images(dist_dir: Path, max_size_kb: int = 200) -> list[dict]:
                 if img_path.exists() and not img_src.endswith(".svg"):
                     file_size = img_path.stat().st_size
                     size_kb = file_size / 1024
-                    key = (img_src, size_kb)
+                    key = ("oversized", img_src, rel, round(size_kb))
                     if key not in seen_imgs:
                         seen_imgs.add(key)
                         if size_kb > max_size_kb:
@@ -751,6 +750,11 @@ def check_multiple_canonical(dist_dir: Path) -> list[dict]:
 def check_favicon(dist_dir: Path) -> list[dict]:
     """Check for favicon reference."""
     issues = []
+    # A favicon file on disk counts — browsers request /favicon.ico by default
+    has_favicon_file = any(
+        (dist_dir / name).exists() or (dist_dir / "public" / name).exists()
+        for name in ["favicon.ico", "favicon.svg", "favicon.png"]
+    )
     icon_patterns = [
         re.compile(r'rel=["\']icon["\']', re.IGNORECASE),
         re.compile(r'rel=["\']shortcut icon["\']', re.IGNORECASE),
@@ -764,18 +768,14 @@ def check_favicon(dist_dir: Path) -> list[dict]:
             break
     if root_html.exists():
         content = root_html.read_text(errors="ignore")
-        if not any(p.search(content) for p in icon_patterns):
+        if not any(p.search(content) for p in icon_patterns) and not has_favicon_file:
             issues.append({
                 "type": "missing_favicon",
                 "severity": "info",
                 "path": "index.html",
                 "detail": "No favicon link found in <head>",
             })
-    # Also check file exists
-    for name in ["favicon.ico", "favicon.svg", "favicon.png"]:
-        if (dist_dir / name).exists() or (dist_dir / "public" / name).exists():
-            return issues
-    if not issues:
+    if not issues and not has_favicon_file:
         issues.append({
             "type": "missing_favicon",
             "severity": "info",
@@ -871,7 +871,7 @@ def check_schema_types(dist_dir: Path) -> list[dict]:
         found_types = set()
         for block in blocks:
             for t in high_value_types:
-                if f'"@type":\\s*"{t}"' in block or f'"@type":"{t}"' in block:
+                if re.search(r'"@type"\s*:\s*"' + re.escape(t) + '"', block):
                     found_types.add(t)
         if not found_types & {"FAQPage", "HowTo"} and "blog/" in rel and "/category/" not in rel:
             issues.append({
@@ -916,7 +916,7 @@ def check_commercial_schema(dist_dir: Path) -> list[dict]:
         found = False
         for block in blocks:
             for t in commercial_types:
-                if f'"@type":\\s*"{t}"' in block or f'"@type":"{t}"' in block:
+                if re.search(r'"@type"\s*:\s*"' + re.escape(t) + '"', block):
                     found = True
                     break
             if found:
@@ -1340,12 +1340,11 @@ def build_link_map(
         hrefs = extract_hrefs(content)
         rel = str(html_file.relative_to(dist_dir))
         for href in hrefs:
-            clean = href.split("#")[0].split("?")[0].rstrip("/")
-            if clean:
-                all_links.add(clean)
-                if clean not in link_sources:
-                    link_sources[clean] = set()
-                link_sources[clean].add(rel)
+            clean = href.split("#")[0].split("?")[0].rstrip("/") or "/"
+            all_links.add(clean)
+            if clean not in link_sources:
+                link_sources[clean] = set()
+            link_sources[clean].add(rel)
     return link_sources, all_links
 
 
@@ -1441,16 +1440,15 @@ def format_text(
         buf.write(f"\n{sep}\n")
         if unique_paths:
             for path in unique_paths:
-                detail = next(
-                    (i["detail"] for i in group if i["path"] == path), ""
-                )
+                matching = [i for i in group if i["path"] == path]
                 source = next(
-                    (i.get("source", "") for i in group if i["path"] == path), ""
+                    (i.get("source", "") for i in matching if i.get("source")), ""
                 )
                 suffix = f"  (in {source})" if source else ""
                 buf.write(f"  {path}{suffix}\n")
-                if detail:
-                    buf.write(f"    → {detail}\n")
+                for i in matching:
+                    if i.get("detail"):
+                        buf.write(f"    → {i['detail']}\n")
         else:
             buf.write("  None — all good.\n")
 
@@ -1520,7 +1518,10 @@ def run(
 ) -> str:
     """Run the full audit and return formatted output."""
     # 1. Parse sitemap
-    sitemap_paths = parse_sitemap(sitemap_path, base_path)
+    try:
+        sitemap_paths = parse_sitemap(sitemap_path, base_path)
+    except FileNotFoundError as e:
+        return f"ERROR: {e}\nRun with --sitemap <path> or point --dist at a build output that contains one."
 
     # 2. Scan HTML files
     html_files = find_html_files(dist_dir)

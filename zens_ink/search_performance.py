@@ -55,12 +55,27 @@ def query(token: str, dimensions: list[str], start: str, end: str,
     site = urllib.parse.quote(GSC_SITE_URL, safe="")
     url = (f"https://searchconsole.googleapis.com/webmasters/v3/sites/{site}"
            f"/searchAnalytics/query")
-    req = urllib.request.Request(
-        url, data=json.dumps(payload).encode(),
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        method="POST")
-    resp = urllib.request.urlopen(req, timeout=15)
-    return json.loads(resp.read().decode())
+
+    def _post(p):
+        req = urllib.request.Request(
+            url, data=json.dumps(p).encode(),
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            method="POST")
+        resp = urllib.request.urlopen(req, timeout=15)
+        return json.loads(resp.read().decode())
+
+    # Paginate with startRow — a single rowLimit page silently truncates the
+    # totals on larger properties (GSC caps at 25,000 rows per day range)
+    rows = []
+    start_row = 0
+    while True:
+        payload["startRow"] = start_row
+        batch = _post(payload).get("rows", [])
+        rows.extend(batch)
+        if len(batch) < limit or len(rows) >= 25000:
+            break
+        start_row += len(batch)
+    return {"rows": rows}
 
 
 def main():

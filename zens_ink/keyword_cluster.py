@@ -21,6 +21,7 @@ Usage:
 """
 
 import argparse
+import csv
 import json
 import re
 import sys
@@ -99,10 +100,10 @@ def compute_idf(keywords_tokens: list[set[str]]) -> dict[str, float]:
 def weighted_jaccard(a: set[str], b: set[str],
                      idf: dict[str, float]) -> float:
     """
-    Blended similarity: 50% plain Jaccard + 50% IDF-weighted Jaccard.
-    Plain Jaccard captures topic words shared across keywords.
-    IDF-weighted upweights rare tokens to prevent over-grouping.
+    IDF-weighted Jaccard. Plain Jaccard captures topic words shared across
+    keywords; IDF-weighted upweights rare tokens to prevent over-grouping.
     Chinese prefix tokens (__pfx_*) get boosted weight.
+    cluster() blends 60% plain Jaccard + 40% of this score.
     """
     if not a or not b:
         return 0.0
@@ -172,22 +173,13 @@ def cluster(keywords: list[str], threshold: float = 0.15) -> list[dict]:
 
         for ci, c in enumerate(clusters):
             # Centroid = weighted average of cluster's tokens
-            # Similarity = weighted_jaccard(keyword_tokens, centroid_tokens)
-            # Approximate centroid by union of member tokens weighted by frequency
-            inter_weight = sum(
-                idf.get(t, 1.0) * (3.0 if t.startswith("__pfx_") else 1.0)
-                for t in tokens[i] & c["token_set"]
-            )
-            union_weight = sum(
-                idf.get(t, 1.0) * (3.0 if t.startswith("__pfx_") else 1.0)
-                for t in tokens[i] | c["token_set"]
-            ) or 1.0
-            score = inter_weight / union_weight
+            # IDF-weighted similarity against the cluster's token set
+            weighted_score = weighted_jaccard(tokens[i], c["token_set"], idf)
             # Blend with plain jaccard against centroid
             plain_inter = len(tokens[i] & c["token_set"])
             plain_union = len(tokens[i] | c["token_set"]) or 1
             plain_score = plain_inter / plain_union
-            score = 0.6 * plain_score + 0.4 * score
+            score = 0.6 * plain_score + 0.4 * weighted_score
 
             if score > best_score:
                 best_score = score
@@ -242,20 +234,18 @@ def read_keywords(filepath: str | None = None, stdin: bool = False,
     keywords = []
     if filepath:
         text = Path(filepath).read_text(encoding="utf-8")
-        # Handle CSV (first column) or plain text
-        for line in text.splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
+        # Handle CSV (first column, honoring quotes) or plain text
+        for row in csv.reader(text.splitlines()):
+            if not row or (row[0] or "").strip().startswith("#"):
                 continue
-            # CSV: take first field
-            kw = line.split(",")[0].strip().strip('"')
+            kw = row[0].strip() if row else ""
             if kw:
                 keywords.append(kw)
     if stdin:
-        for line in sys.stdin:
-            kw = line.strip()
+        for row in csv.reader(sys.stdin):
+            kw = (row[0] if row else "").strip()
             if kw and not kw.startswith("#"):
-                keywords.append(kw.split(",")[0].strip().strip('"'))
+                keywords.append(kw)
     if args:
         keywords.extend(args)
     # Deduplicate preserving order

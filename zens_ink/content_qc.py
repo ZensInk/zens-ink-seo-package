@@ -109,13 +109,20 @@ def check_draft(path: Path) -> dict:
         faq = "faq" in fm or bool(re.search(r"^faq:", raw, re.M)) or "FAQPage" in raw or "Frequently Asked" in raw
         dates = bool(re.search(r"\b(19|20)\d{2}\b", fm.get("date", "") + fm.get("updated", "")))
 
+    # Word count: Latin words + CJK characters (CJK has no spaces — count
+    # each character as a word unit so densities aren't divided by ~zero)
     words = re.findall(r"[A-Za-z][A-Za-z'-]*", text)
-    word_count = len(words)
+    cjk_chars = re.findall(r"[\u4e00-\u9fff]", text)
+    word_count = len(words) + len(cjk_chars)
     numbers = NUMBER_RE.findall(text)
     years = YEAR_RE.findall(text)
 
     lower_text = text.lower()
-    vague_hits = sum(1 for w in VAGUE_WORDS if w in lower_text)
+    # word-boundary matching: "some" must not hit "handsome" or CJK substrings
+    vague_hits = sum(
+        1 for w in VAGUE_WORDS
+        if re.search(r"(?<![a-z])" + re.escape(w) + r"(?![a-z])", lower_text)
+    )
     vague_density = (vague_hits * 1000 / max(word_count, 1))
     fact_density = ((len(numbers) + len(years)) * 1000 / max(word_count, 1))
 

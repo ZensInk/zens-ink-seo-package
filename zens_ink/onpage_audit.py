@@ -527,8 +527,11 @@ def run(dist_dir: str, sitemap_path: str = None, keywords_file: str = None,
     sitemap_paths = set()
     if sitemap_path:
         sm = Path(sitemap_path)
-        if sm.exists():
-            sitemap_paths = parse_sitemap(sm, base_path)
+        try:
+            if sm.exists():
+                sitemap_paths = parse_sitemap(sm, base_path)
+        except FileNotFoundError:
+            sitemap_paths = set()
 
     # First pass: collect all titles and descriptions for uniqueness checks
     all_titles = []

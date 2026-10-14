@@ -87,10 +87,10 @@ def fetch_positions(keyword, domain, gl="us", hl="en", num=20):
         headers={"Content-Type": "application/json", "X-API-KEY": SERPER_API_KEY})
     with urllib.request.urlopen(req, timeout=20) as resp:
         data = json.loads(resp.read().decode())
-    target = domain.lower().lstrip("www.") if domain else ""
+    target = domain.lower().removeprefix("www.") if domain else ""
     for r in data.get("organic", []):
         d = _domain_of(r.get("link", ""))
-        if target and (d == target or d.endswith("." + target) or target in d):
+        if target and (d == target or d.endswith("." + target)):
             return r.get("position", _NOT_FOUND), r.get("link", "")
     return _NOT_FOUND, ""
 
@@ -113,13 +113,16 @@ def act_add(args):
 
 
 def act_remove(args):
+    kws = [k.strip() for k in args.keywords.split(",") if k.strip()]
     c = _conn()
-    cur = c.execute("DELETE FROM keywords WHERE keyword=?", (args.keywords,))
-    c.execute("DELETE FROM snapshots WHERE keyword=?", (args.keywords,))
+    removed = []
+    for kw in kws:
+        cur = c.execute("DELETE FROM keywords WHERE keyword=?", (kw,))
+        c.execute("DELETE FROM snapshots WHERE keyword=?", (kw,))
+        removed.extend([kw] * cur.rowcount)
     c.commit()
-    n = cur.rowcount
     c.close()
-    return {"removed": args.keywords if n else None}
+    return {"removed": removed}
 
 
 def act_check(args):
@@ -182,7 +185,11 @@ def act_trend(args):
             continue
         cur = snaps[0]["position"]
         prev = snaps[1]["position"] if len(snaps) > 1 else None
-        delta = (prev - cur) if prev is not None else None
+        # mask the not-found sentinel BEFORE arithmetic, else a never-ranked
+        # snapshot fabricates a ±996-place "change"
+        cur_r = None if cur == _NOT_FOUND else cur
+        prev_r = None if prev in (None, _NOT_FOUND) else prev
+        delta = (prev_r - cur_r) if (prev_r is not None and cur_r is not None) else None
         out.append({"keyword": kw,
                     "position": None if cur == _NOT_FOUND else cur,
                     "previous": None if prev in (None, _NOT_FOUND) else prev,

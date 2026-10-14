@@ -32,6 +32,7 @@ Zero dependencies beyond Python stdlib.
 """
 
 import argparse
+import re
 import json
 import sys
 import time
@@ -52,6 +53,11 @@ _COMMERCIAL_INTENT_WORDS = {
     "recommend", "top", "cheapest", "worth it", "buy", "pricing",
     "how to", "which", "should i",
 }
+
+def _has_commercial_intent(text_lower: str) -> bool:
+    """Word-boundary match so 'top' doesn't hit 'laptop'/'desktop'/'stop'."""
+    return any(re.search(rf"\b{re.escape(w)}\b", text_lower) for w in _COMMERCIAL_INTENT_WORDS)
+
 
 # Subreddits commonly associated with commercial-intent discussions
 _COMMERCIAL_SUBREDDITS = {
@@ -182,7 +188,8 @@ def check_google_demand(query: str, hl: str = "en") -> bool:
     try:
         resp = urllib.request.urlopen(req, timeout=8)
         data = json.loads(resp.read().decode())
-        suggestions = data[1] if len(data) > 1 else []
+        raw = data[1] if len(data) > 1 else []
+        suggestions = raw if isinstance(raw, list) else []
         # If any suggestion contains the query, there's demand
         q_lower = query.lower()
         for s in suggestions:
@@ -211,7 +218,7 @@ def score_post(post: dict, check_demand: bool = True) -> dict:
     engagement_penalty = vote_penalty + comment_penalty
 
     # Commercial intent: does the title suggest buyer-ready audience?
-    has_commercial = any(w in title_lower for w in _COMMERCIAL_INTENT_WORDS)
+    has_commercial = _has_commercial_intent(title_lower)
     is_commercial_sub = post["subreddit"].lower() in _COMMERCIAL_SUBREDDITS
     commercial_bonus = 2 if has_commercial else (1 if is_commercial_sub else 0)
 
@@ -293,7 +300,7 @@ def discover_google_demand(keyword: str, lang: str = "en") -> dict:
             seen.add(s_clean.lower())
             
             s_lower = s_clean.lower()
-            has_commercial = any(w in s_lower for w in _COMMERCIAL_INTENT_WORDS)
+            has_commercial = _has_commercial_intent(s_lower)
             word_count = len(s_clean.split())
             competition = "low" if word_count >= 5 else ("medium" if word_count >= 3 else "high")
             

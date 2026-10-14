@@ -271,6 +271,7 @@ TOOLS = [
             {"name": "compare", "flag": "--compare", "type": "array", "items": "string", "description": "Multiple sitemap URLs to compare (your site first)"},
             {"name": "lang", "flag": "--lang", "type": "string", "description": "Filter by language (en, zh, ...)"},
         ],
+        "json_flag": False,  # text-only output, no --json flag
         "timeout": 240,
     },
     {
@@ -434,9 +435,13 @@ def build_command(name, arguments):
     return cmd, t
 
 
+class InvalidParams(ValueError):
+    """Maps to JSON-RPC -32602 (invalid params), not the generic -32603."""
+
+
 def call_tool(name, arguments):
     if name not in {t["name"] for t in TOOLS}:
-        raise ValueError(f"unknown tool '{name}'")
+        raise InvalidParams(f"unknown tool '{name}'")
     cmd, t = build_command(name, arguments)
     try:
         proc = subprocess.run(
@@ -462,10 +467,18 @@ def call_tool(name, arguments):
     return {"content": [{"type": "text", "text": text}]}
 
 
+SUPPORTED_VERSION = "2024-11-05"
+SUPPORTED_VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18"}
+
+
 def dispatch(method, params):
     if method == "initialize":
+        # Negotiate honestly: echo the client's version only if we support it,
+        # otherwise fall back to the latest version we DO support
+        requested = params.get("protocolVersion", SUPPORTED_VERSION)
+        version = requested if requested in SUPPORTED_VERSIONS else SUPPORTED_VERSION
         return {
-            "protocolVersion": params.get("protocolVersion", "2024-11-05"),
+            "protocolVersion": version,
             "capabilities": {"tools": {}},
             "serverInfo": {"name": "zens-ink", "version": __version__},
         }
@@ -474,7 +487,10 @@ def dispatch(method, params):
     if method == "tools/list":
         return {"tools": tool_definitions()}
     if method == "tools/call":
-        return call_tool(params.get("name"), params.get("arguments"))
+        name = params.get("name")
+        if not name:
+            raise InvalidParams("tools/call requires a 'name' parameter")
+        return call_tool(name, params.get("arguments"))
     raise KeyError(method)
 
 
@@ -494,6 +510,8 @@ def serve():
             reply["result"] = dispatch(msg.get("method"), msg.get("params") or {})
         except KeyError:
             reply["error"] = {"code": -32601, "message": f"method not found: {msg.get('method')}"}
+        except InvalidParams as e:
+            reply["error"] = {"code": -32602, "message": str(e)}
         except Exception as e:  # noqa: BLE001 — surface any tool error to the client
             reply["error"] = {"code": -32603, "message": str(e)}
         sys.stdout.write(json.dumps(reply, ensure_ascii=False) + "\n")
