@@ -15,7 +15,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-7c3aed?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
 [![Zero Dependencies](https://img.shields.io/badge/依赖-0-059669?style=flat-square)](https://github.com/ZensInk/zens-ink-seo-package)
-[![Agent Skill](https://img.shields.io/badge/Agent-Skill-7c3aed?style=flat-square)](SKILL.md)
+[![Agent Skill](https://img.shields.io/badge/Agent-Skill-7c3aed?style=flat-square)](skills/zens-ink/SKILL.md)
 [![GitHub stars](https://img.shields.io/github/stars/ZensInk/zens-ink-seo-package?style=flat-square&color=7c3aed)](https://github.com/ZensInk/zens-ink-seo-package)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ZensInk/zens-ink-seo-package?style=flat-square&color=a8a29e)](https://github.com/ZensInk/zens-ink-seo-package)
 [![PRs Welcome](https://img.shields.io/badge/PR-欢迎-7c3aed?style=flat-square)](https://github.com/ZensInk/zens-ink-seo-package/pulls)
@@ -125,7 +125,7 @@ ZensInk 可以作为 AI 助手的技能运行 —— 用自然语言让 AI 帮�
 npx skills add ZensInk/zens-ink-seo-package --skill zens-ink
 ```
 
-然后直接对 AI 说：「帮我找塔罗相关的关键词」，AI 会自动调用工具。详见 [SKILL.md](SKILL.md)。
+然后直接对 AI 说：「帮我找塔罗相关的关键词」，AI 会自动调用工具。详见 [SKILL.md](skills/zens-ink/SKILL.md)。
 
 ## 作为 MCP Server 使用（DSH / Claude / Codex）
 

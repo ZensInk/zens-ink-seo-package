@@ -15,7 +15,7 @@ CLI tools for keyword research, competitor analysis, and technical audits. Zero 
 [![License: MIT](https://img.shields.io/badge/License-MIT-7c3aed?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-059669?style=flat-square)](https://github.com/ZensInk/zens-ink-seo-package)
-[![Agent Skill](https://img.shields.io/badge/Agent-Skill-7c3aed?style=flat-square)](SKILL.md)
+[![Agent Skill](https://img.shields.io/badge/Agent-Skill-7c3aed?style=flat-square)](skills/zens-ink/SKILL.md)
 [![GitHub stars](https://img.shields.io/github/stars/ZensInk/zens-ink-seo-package?style=flat-square&color=7c3aed)](https://github.com/ZensInk/zens-ink-seo-package)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ZensInk/zens-ink-seo-package?style=flat-square&color=a8a29e)](https://github.com/ZensInk/zens-ink-seo-package)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-7c3aed?style=flat-square)](https://github.com/ZensInk/zens-ink-seo-package/pulls)
@@ -138,7 +138,7 @@ ZensInk works as an AI agent skill — let your AI assistant run SEO tools for y
 npx skills add ZensInk/zens-ink-seo-package --skill zens-ink
 ```
 
-Then just tell your AI: "find keywords for my tarot site" and it runs the tools for you. See [SKILL.md](SKILL.md) for details.
+Then just tell your AI: "find keywords for my tarot site" and it runs the tools for you. See [SKILL.md](skills/zens-ink/SKILL.md) for details.
 
 ## Use as MCP Server (DSH / Claude / Codex)
 

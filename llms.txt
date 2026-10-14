@@ -48,7 +48,7 @@ ZensInk is for indie builders who need real SEO data without Ahrefs or subscript
 ## Agent Interfaces
 
 - [MCP server](https://github.com/ZensInk/zens-ink-seo-package/blob/main/zens_ink/mcp.py): `python3 -m zens_ink.mcp` — stdio server exposing every tool as a native model tool. Detects the Pro package (`zens_ink_pro`) if installed alongside.
-- [Agent skill](https://github.com/ZensInk/zens-ink-seo-package/blob/main/SKILL.md): `npx skills add ZensInk/zens-ink-seo-package --skill zens-ink` for ClawHub / OpenClaw / Hermes-compatible agents.
+- [Agent skill](https://github.com/ZensInk/zens-ink-seo-package/blob/main/skills/zens-ink/SKILL.md): `npx skills add ZensInk/zens-ink-seo-package --skill zens-ink` for ClawHub / OpenClaw / Hermes-compatible agents.
 
 ## Pro Package
 
@@ -59,6 +59,6 @@ ZensInk is for indie builders who need real SEO data without Ahrefs or subscript
 - [llms-full.txt](https://github.com/ZensInk/zens-ink-seo-package/blob/main/llms-full.txt): full per-tool CLI reference with flags and outputs
 - [ARCHITECTURE.md](https://github.com/ZensInk/zens-ink-seo-package/blob/main/ARCHITECTURE.md): package layout, data flow, config, invariants
 - [README](https://github.com/ZensInk/zens-ink-seo-package/blob/main/README.md): full tool table, workflow diagram, config guide
-- [SKILL.md](https://github.com/ZensInk/zens-ink-seo-package/blob/main/SKILL.md): agent skill instructions
+- [SKILL.md](https://github.com/ZensInk/zens-ink-seo-package/blob/main/skills/zens-ink/SKILL.md): agent skill instructions
 - [CHANGELOG](https://github.com/ZensInk/zens-ink-seo-package/blob/main/CHANGELOG.md): release history
 - [LICENSE](https://github.com/ZensInk/zens-ink-seo-package/blob/main/LICENSE): MIT
