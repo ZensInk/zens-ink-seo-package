@@ -15,7 +15,7 @@ description: >-
   Console). Ships an MCP stdio server so any agent can drive every tool.
   Pure Python stdlib — no pip install required beyond this package. Optional API
   keys unlock volume data but all core tools work without any keys.
-version: "1.4.11"
+version: "1.4.12"
 authors:
   - name: Jask
     url: https://zens.ink

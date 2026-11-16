@@ -1,3 +1,28 @@
+## v1.4.12 — 2026-11-16
+
+**Agent Skills 分发——工具包现在能装进任何 agent，而不只是装进 Python。**
+
+仓库新增可安装的技能层：8 个任务级技能（关键词挖掘、关键词难度、竞品内容
+缺口、技术站点审计、排名追踪、搜索意图、Reddit 淘词、GEO 就绪度）+ 全量工具
+包技能，一条命令安装：
+
+```
+npx skills add ZensInk/zens-ink-seo-package
+```
+
+每个任务技能是一份 agent 能照着做完的作业书——真实带 flag 的 CLI 命令、输出
+怎么读、下一步做什么——而不是把 22 个工具名丢给模型让它自己猜。
+
+目录结构（踩过一轮坑，fork 的人值得知道）：技能必须放在 `skills/` 容器目录下。
+仓库根目录放 SKILL.md 会让 Vercel skills CLI 把整个仓库当成单一技能包，嵌套的
+技能全部隐藏。原来的根目录 SKILL.md 已移到 `skills/zens-ink/SKILL.md`。
+
+修复：frontmatter 里某个 key 前多了一个空格，会静默丢掉 `keyword-research` 这个
+技能、且零报错——CLI 唯一可靠的检查是拿列出的技能数对账磁盘文件夹数，现已改正
+frontmatter，数量对齐。
+
+README（中英）与 `llms.txt` 在 `pip install zens-ink` 旁边补上了技能安装路径。
+
 ## v1.4.11 — 2026-10-14
 
 **独立审计加固——修复 39 处缺陷（DSH round 1：40 项发现，12 高 / 15 中 / 13 低）。**

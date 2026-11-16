@@ -1,5 +1,37 @@
 # Changelog
 
+## v1.4.12 — 2026-11-16
+
+**Agent Skills distribution — the toolkit now installs into any agent, not just
+into Python.**
+
+The repo gained an installable skills layer: 8 job-sized skills (keyword
+research, keyword difficulty, competitor gap, site audit, rank tracking, search
+intent, Reddit keywords, GEO readiness) plus the full-toolkit skill, installed
+with one command:
+
+```
+npx skills add ZensInk/zens-ink-seo-package
+```
+
+Each job skill is a task brief an agent can follow end to end — the CLI command
+with its real flags, how to read the output, and what to do next — instead of
+dumping 22 tool names at the model and hoping it picks well.
+
+Layout note (cost us a debugging round, worth knowing if you fork this): skills
+live under a `skills/` container directory. A SKILL.md at the repo root makes
+the Vercel skills CLI treat the *whole repository* as one single-skill package
+and hide every nested skill. Root-level `SKILL.md` was moved to
+`skills/zens-ink/SKILL.md`.
+
+Fixed: a single leading space before a frontmatter key silently dropped
+`keyword-research` from the CLI listing with no error — the CLI's only reliable
+check is counting listed skills against the folders on disk, so the frontmatter
+was corrected and the count now matches.
+
+README (EN + ZH) and `llms.txt` document the skills install path next to
+`pip install zens-ink`.
+
 ## v1.4.11 — 2026-10-14
 
 **Independent audit hardening — 39 defects fixed (DSH round 1: 40 findings, 12H/15M/13L).**
